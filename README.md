@@ -16,12 +16,12 @@ Read the code for a *flow simulation* [here](https://github.com/samvram/wmn_trac
 
 The result is something in 3D which you can interactively see and visualize,
 
-![Output](Working%20Code.png 'Output')
+[![Output](Working%20Code.png 'Output')](https://vimeo.com/296228197)
 
-The video for which the simulation is running can be seen also,
+The video for which the simulation is running can be downloaded [here](https://github.com/samvram/wmn_track3_helper/raw/master/flowSim.mp4).
+"Right Click, Save as" the above link to download.
 
-<video width="640" height="480" controls>
-  <source src="flowSim.mp4" type="video/mp4">
-</video>
+You can watch the video [here](https://vimeo.com/296228197) or by clicking on the picture above.
+
 
 ## Work in Progress(WIP)
