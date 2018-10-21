@@ -12,6 +12,13 @@ Read the code for a *still representation* with required comments [here](https:/
 
 Read the code for a *flow simulation* [here](https://github.com/samvram/wmn_track3_helper/blob/master/script_for_team_2_Flow_Sim.py).
 
+The results need some explanation:
+
+* Red Spheres represent laptops running OLSRD
+* Yellow Spheres represent Routers running OLSRD
+* Green Sphere represents Sarath Sir
+* All links are in White
+
 ## Results
 
 The result is something in 3D which you can interactively see and visualize,
