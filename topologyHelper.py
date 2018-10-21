@@ -111,7 +111,6 @@ class topologyHelper:
 
         for i in range(0,len(df)):
             node1 = df['Dest. IP'][i].split('.')[-1]
-            print(node1)
             node2 = df['Last hop IP'][i].split('.')[-1]
             if node1 in node_loc.keys() and node2 in node_loc.keys():
                 cost[node1][node2] = df['Cost'][i]
@@ -121,11 +120,103 @@ class topologyHelper:
                 cost['5'][node] = 'INFINITE'
                 cost[node]['5'] = 'INFINITE'
 
+        c = dict()
         for node1 in node_loc.keys():
+            c[node1] = dict()
             for node2 in node_loc.keys():
                 if cost[node1][node2] != 'INFINITE':
-                    curve(pos=[node_loc[node1], node_loc[node2]])
-
+                    c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
         return 0
 
-        
+    def flowTopology(self, list_of_topology, plotSarath=False, freq=100):
+        """
+        Function to simulate the flow of topology in time
+        :param list_of_topology: the list of topology tables
+        :param plotSarath: parameters to show connections with Sarath Sir
+        :param freq: The rate at which simulation runs
+        :return:
+        """
+        count = 0
+        node_loc = {'10': vector(-32, 2 - 9, 0),
+                    '11': vector(-28, 2 - 9, 0),
+                    '12': vector(-30, -2 - 9, 0),
+                    '20': vector(-22, 2 - 6, 0),
+                    '21': vector(-18, 2 - 6, 0),
+                    '22': vector(-20, -2 - 6, 0),
+                    '40': vector(-12, 2 - 3, 0),
+                    '41': vector(-8, 2 - 3, 0),
+                    '42': vector(-10, -2 - 3, 0),
+                    '50': vector(-2, 2, 0),
+                    '51': vector(2, 2, 0),
+                    '52': vector(0, -2, 0),
+                    '54': vector(-3, -2, 0),
+                    '70': vector(8, 2 - 3, 0),
+                    '71': vector(12, 2 - 3, 0),
+                    '72': vector(10, -2 - 3, 0),
+                    '80': vector(18, 2 - 6, 0),
+                    '81': vector(22, 2 - 6, 0),
+                    '82': vector(20, -2 - 6, 0),
+                    '100': vector(28, 2 - 9, 0),
+                    '101': vector(32, 2 - 9, 0),
+                    '102': vector(30, -2 - 9, 0),
+                    '30': vector(-17, 2 - 4.5, 12),
+                    '31': vector(-13, 2 - 4.5, 12),
+                    '32': vector(-15, -2 - 4.5, 12),
+                    '60': vector(-2, 2, 12),
+                    '61': vector(2, 2, 12),
+                    '62': vector(0, -2, 12),
+                    '90': vector(13, 2 - 4.5, 12),
+                    '91': vector(17, 2 - 4.5, 12),
+                    '92': vector(15, -2 - 4.5, 12),
+                    '110': vector(-32, -2 - 9, 0),
+                    '5': vector(15, 0 - 4.5, 3)}
+
+        for node in node_loc.keys():
+            if node[-1] == '0':
+                sphere(pos=node_loc[node], radius=0.5, color=color.yellow)
+            elif node=='5' or node=='110':
+                sphere(pos=node_loc[node], radius=0.5, color=color.green)
+            else:
+                sphere(pos=node_loc[node], radius=0.5, color=color.red)
+
+        firstTime = True
+        for df in list_of_topology:
+            count = count+1
+            print('count : %d\r'%count)
+            rate(freq)
+            cost = dict()
+            for node1 in node_loc.keys():
+                cost[node1] = dict()
+                for node2 in node_loc.keys():
+                    cost[node1][node2] = 'INFINITE'
+
+            for i in range(0, len(df)):
+                node1 = df['Dest. IP'][i].split('.')[-1]
+                node2 = df['Last hop IP'][i].split('.')[-1]
+                if node1 in node_loc.keys() and node2 in node_loc.keys():
+                    cost[node1][node2] = df['Cost'][i]
+
+            if plotSarath == False:
+                for node in node_loc.keys():
+                    cost['5'][node] = 'INFINITE'
+                    cost[node]['5'] = 'INFINITE'
+
+            if firstTime==True:
+                c = dict()
+                for node1 in node_loc.keys():
+                    c[node1] = dict()
+                    for node2 in node_loc.keys():
+                        if cost[node1][node2] != 'INFINITE':
+                            c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
+                        else:
+                            c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
+                            c[node1][node2].visible = False
+                firstTime = False
+            else:
+                for node1 in node_loc.keys():
+                    for node2 in node_loc.keys():
+                        if cost[node1][node2] == 'INFINITE':
+                            c[node1][node2].visible = False
+                        else:
+                            c[node1][node2].visible = True
+        return 0
