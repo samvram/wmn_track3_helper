@@ -33,6 +33,6 @@ for file in file_list[1:1000]:
 # th.representTopology(topology)
 
 # A flow topology
-th.flowTopology(topology_info_list, fileName)
+th.flowTopology(topology_info_list,fileName,"Hi there!", True, True)
 
 
