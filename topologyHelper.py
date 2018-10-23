@@ -26,8 +26,10 @@ class topologyHelper:
     def __init__(self, freq):
         self.freq = freq
         self.i = 0
-        self.animate = False
+        self.animate = True
         self.time_of_events = dict()
+
+        scene.bind('keydown', self.changeRate)
 
         self.time_of_events['TCP'] = dict()
         self.time_of_events['TCP']['Start'] = datetime.datetime(2018, 10, 17, 13, 2)
@@ -105,7 +107,7 @@ class topologyHelper:
                 continue
         return topology_info
 
-    def representTopology(self, df, plotSarath=False):
+    def representTopology(self, df, fName, plotSarath=False):
         """
         input df : dataframe containing topology values
         input plotSarath : False(default), provide as True, if you want to plot Sarath Sir
@@ -144,6 +146,10 @@ class topologyHelper:
                     '92': vector(15, -2 - 4.5, 12),
                     '110': vector(-32, -2 - 9, 0),
                     '5': vector(15, 0 - 4.5, 3)}
+
+        label(pos=vector(0, 0, 0), xoffset=-230, yoffset=190, line=False, box=False, text=fName)
+        label(pos=vector(0, 0, 0), xoffset=200, yoffset=190, line=False, box=False,
+              text="Rate: " + str(self.freq))
 
         for node in node_loc.keys():
             if node[-1] == '0':
@@ -210,7 +216,7 @@ class topologyHelper:
         :param freq: The rate at which simulation runs
         :return:
         """
-        scene.bind('keydown', self.changeRate)
+
         count = 0
         node_loc = {'10': vector(-32, 2 - 9, 0),
                     '11': vector(-28, 2 - 9, 0),
@@ -258,7 +264,6 @@ class topologyHelper:
         firstTime = True
         self.i = 0
         while True:
-            up_time = dict()
             while self.animate:
                 self.i %= len(list_of_topology)
                 df = list_of_topology[self.i]
@@ -270,17 +275,14 @@ class topologyHelper:
                 cost = dict()
                 for node1 in node_loc.keys():
                     cost[node1] = dict()
-                    up_time[node1] = dict()
                     for node2 in node_loc.keys():
                         cost[node1][node2] = 'INFINITE'
-                        up_time[node1][node2] = 0
 
                 for i in range(0, len(df)):
                     node1 = df['Dest. IP'][i].split('.')[-1]
                     node2 = df['Last hop IP'][i].split('.')[-1]
                     if node1 in node_loc.keys() and node2 in node_loc.keys():
                         cost[node1][node2] = df['Cost'][i]
-                        up_time[node1][node2] = df["Up"][i]
 
                 if plotSarath == False:
                     for node in node_loc.keys():
@@ -292,22 +294,17 @@ class topologyHelper:
 
                     for node1 in node_loc.keys():
                         c[node1] = dict()
-                        up_time[node1] = dict()
                         for node2 in node_loc.keys():
-                            c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]], visible=False)
-                            if cost[node1][node2] != 'INFINITE' and cost[node1][node2] != 'INFINIT':
-                                c[node1][node2].visible = True
-                                up_time[node1][node2] += 1
-
-
+                            if cost[node1][node2] != 'INFINITE':
+                                c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
                             else:
-                                c[node1][node2].visible = False
-                                up_time[node1][node2] = False
+                                c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
+                                c[node1][node2].visible = False 
                     firstTime = False
                 else:
                     for node1 in node_loc.keys():
                         for node2 in node_loc.keys():
-                            if cost[node1][node2] == 'INFINITE' or cost[node1][node2] == 'INFINIT':
+                            if cost[node1][node2] == 'INFINITE':
                                 c[node1][node2].visible = False
 
                             else:
@@ -315,9 +312,7 @@ class topologyHelper:
 
                 self.i += 1
                 if self.i >= len(list_of_topology):
+                    print('Animation over')
                     firstTime = True
                     self.i = 0
-                    print(up_time)
-
-        print('Animation over')
         return 0
