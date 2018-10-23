@@ -27,5 +27,5 @@ topology_info = th.parseFile(file_list[1000])
 topology = topology_info['Topology']
 
 # Represent the topology
-th.representTopology(topology)
+th.representTopology(topology, (file_list[1000])['file_name'])
 

@@ -4,7 +4,7 @@ Wireless Mesh Networks - Track III Analysis
 -Samvram Sahu
 """
 import os
-from datetime import datetime
+import datetime
 import pandas as pd
 import sys
 from vpython import *
@@ -26,40 +26,43 @@ class topologyHelper:
     def __init__(self, freq):
         self.freq = freq
         self.i = 0
-        self.animate = False
+
+        self.animate = True
         self.time_of_events = dict()
 
+        scene.bind('keydown', self.changeRate)
+
         self.time_of_events['TCP'] = dict()
-        self.time_of_events['TCP']['Start'] = datetime(2018, 10, 17, 13, 2)
-        self.time_of_events['TCP']['End'] = datetime(2018, 10, 17, 14, 00)
+        self.time_of_events['TCP']['Start'] = datetime.datetime(2018, 10, 17, 13, 2)
+        self.time_of_events['TCP']['End'] = datetime.datetime(2018, 10, 17, 14, 00)
 
         self.time_of_events['Rain'] = dict()
-        self.time_of_events['Rain']['Start'] = datetime(2018, 10, 17, 14, 00)
-        self.time_of_events['Rain']['End'] = datetime(2018, 10, 17, 14, 56)
+        self.time_of_events['Rain']['Start'] = datetime.datetime(2018, 10, 17, 14, 00)
+        self.time_of_events['Rain']['End'] = datetime.datetime(2018, 10, 17, 14, 56)
 
         self.time_of_events['UDP'] = dict()
-        self.time_of_events['UDP']['Start'] = datetime(2018, 10, 17, 14, 56)
-        self.time_of_events['UDP']['End'] = datetime(2018, 10, 17, 15, 23)
+        self.time_of_events['UDP']['Start'] = datetime.datetime(2018, 10, 17, 14, 56)
+        self.time_of_events['UDP']['End'] = datetime.datetime(2018, 10, 17, 15, 23)
 
         self.time_of_events['PING'] = dict()
-        self.time_of_events['PING']['Start'] = datetime(2018, 10, 17, 15, 23)
-        self.time_of_events['PING']['End'] = datetime(2018, 10, 17, 15, 40)
+        self.time_of_events['PING']['Start'] = datetime.datetime(2018, 10, 17, 15, 23)
+        self.time_of_events['PING']['End'] = datetime.datetime(2018, 10, 17, 15, 40)
 
         self.time_of_events['VoIP'] = dict()
-        self.time_of_events['VoIP']['Start'] = datetime(2018, 10, 17, 15, 40)
-        self.time_of_events['VoIP']['End'] = datetime(2018, 10, 17, 16, 21)
+        self.time_of_events['VoIP']['Start'] = datetime.datetime(2018, 10, 17, 15, 40)
+        self.time_of_events['VoIP']['End'] = datetime.datetime(2018, 10, 17, 16, 21)
 
         self.time_of_events['FTP'] = dict()
-        self.time_of_events['FTP']['Start'] = datetime(2018, 10, 17, 16, 21)
-        self.time_of_events['FTP']['End'] = datetime(2018, 10, 17, 17, 12)
+        self.time_of_events['FTP']['Start'] = datetime.datetime(2018, 10, 17, 16, 21)
+        self.time_of_events['FTP']['End'] = datetime.datetime(2018, 10, 17, 17, 12)
 
         self.time_of_events['MOBILITY'] = dict()
-        self.time_of_events['MOBILITY']['Start'] = datetime(2018, 10, 17, 17, 12)
-        self.time_of_events['MOBILITY']['End'] = datetime(2018, 10, 17, 52)
+        self.time_of_events['MOBILITY']['Start'] = datetime.datetime(2018, 10, 17, 17, 12)
+        self.time_of_events['MOBILITY']['End'] = datetime.datetime(2018, 10, 17, 17, 52)#datetime.datetime(2018, 10, 17, 52, 20)
 
         self.time_of_events['RANDOM'] = dict()
-        self.time_of_events['RANDOM']['Start'] = datetime(2018, 10, 17, 52)
-        self.time_of_events['RANDOM']['End'] = datetime(2018, 10, 18, 5)
+        self.time_of_events['RANDOM']['Start'] = datetime.datetime(2018, 10, 17,17, 52)
+        self.time_of_events['RANDOM']['End'] = datetime.datetime(2018, 10, 17, 18, 5)
 
     def getEvents(self):
         """
@@ -91,7 +94,7 @@ class topologyHelper:
         """
         topology_info = dict()
         name = file_dict['file_name']
-        topology_info['Time'] = datetime.strptime(name[0:-3], '%Y-%m-%d_%H_%M_%S.%f')
+        topology_info['Time'] = datetime.datetime.strptime(name[0:-3], '%Y-%m-%d_%H_%M_%S.%f')
         fread = ''
         with open(file_dict['file_path']) as f:
             fread = f.read()
@@ -105,7 +108,7 @@ class topologyHelper:
                 continue
         return topology_info
 
-    def representTopology(self, df, plotSarath=False):
+    def representTopology(self, df, fName, plotSarath=False):
         """
         input df : dataframe containing topology values
         input plotSarath : False(default), provide as True, if you want to plot Sarath Sir
@@ -144,6 +147,10 @@ class topologyHelper:
                     '92': vector(15, -2 - 4.5, 12),
                     '110': vector(-32, -2 - 9, 0),
                     '5': vector(15, 0 - 4.5, 3)}
+
+        label(pos=vector(0, 0, 0), xoffset=-230, yoffset=190, line=False, box=False, text=fName)
+        label(pos=vector(0, 0, 0), xoffset=200, yoffset=190, line=False, box=False,
+              text="Rate: " + str(self.freq))
 
         for node in node_loc.keys():
             if node[-1] == '0':
@@ -210,7 +217,7 @@ class topologyHelper:
         :param freq: The rate at which simulation runs
         :return:
         """
-        scene.bind('keydown', self.changeRate)
+
         count = 0
         node_loc = {'10': vector(-32, 2 - 9, 0),
                     '11': vector(-28, 2 - 9, 0),
@@ -262,7 +269,8 @@ class topologyHelper:
                 self.i %= len(list_of_topology)
                 df = list_of_topology[self.i]
                 label(pos=vector(0, 0, 0), xoffset=-230, yoffset=190, line=False, box=False, text=fileName[self.i])
-                label(pos=vector(0, 0, 0), xoffset=200, yoffset=190, line=False, box=False, text="Rate: "+str(self.freq))
+                label(pos=vector(0, 0, 0), xoffset=200, yoffset=190, line=False, box=False,
+                      text="Rate: " + str(self.freq))
 
                 rate(self.freq)
                 cost = dict()
@@ -284,26 +292,28 @@ class topologyHelper:
 
                 if firstTime == True:
                     c = dict()
+
                     for node1 in node_loc.keys():
                         c[node1] = dict()
                         for node2 in node_loc.keys():
-                            if cost[node1][node2] != 'INFINITE' and cost[node1][node2] != 'INFINIT':
+                            if cost[node1][node2] != 'INFINITE':
                                 c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
                             else:
                                 c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
-                                c[node1][node2].visible = False
+                                c[node1][node2].visible = False 
                     firstTime = False
                 else:
                     for node1 in node_loc.keys():
                         for node2 in node_loc.keys():
-                            if cost[node1][node2] == 'INFINITE' or cost[node1][node2] == 'INFINIT':
+                            if cost[node1][node2] == 'INFINITE':
                                 c[node1][node2].visible = False
+
                             else:
                                 c[node1][node2].visible = True
+
                 self.i += 1
                 if self.i >= len(list_of_topology):
+                    print('Animation over')
                     firstTime = True
                     self.i = 0
-
-        print('Animation over')
         return 0
