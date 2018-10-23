@@ -27,6 +27,46 @@ class topologyHelper:
         self.freq = freq
         self.i = 0
         self.animate = False
+        self.self.time_of_events = dict()
+
+        self.time_of_events['TCP'] = dict()
+        self.time_of_events['TCP']['Start'] = datetime.dstetime(2018, 10, 17, 13, 2)
+        self.time_of_events['TCP']['End'] = datetime.dstetime(2018, 10, 17, 14, 00)
+
+        self.time_of_events['Rain'] = dict()
+        self.time_of_events['Rain']['Start'] = datetime.dstetime(2018, 10, 17, 14, 00)
+        self.time_of_events['Rain']['End'] = datetime.dstetime(2018, 10, 17, 14, 56)
+
+        self.time_of_events['UDP'] = dict()
+        self.time_of_events['UDP']['Start'] = datetime.dstetime(2018, 10, 17, 14, 56)
+        self.time_of_events['UDP']['End'] = datetime.dstetime(2018, 10, 17, 15, 23)
+
+        self.time_of_events['PING'] = dict()
+        self.time_of_events['PING']['Start'] = datetime.dstetime(2018, 10, 17, 15, 23)
+        self.time_of_events['PING']['End'] = datetime.dstetime(2018, 10, 17, 15, 40)
+
+        self.time_of_events['VoIP'] = dict()
+        self.time_of_events['VoIP']['Start'] = datetime.dstetime(2018, 10, 17, 15, 40)
+        self.time_of_events['VoIP']['End'] = datetime.dstetime(2018, 10, 17, 16, 21)
+
+        self.time_of_events['FTP'] = dict()
+        self.time_of_events['FTP']['Start'] = datetime.dstetime(2018, 10, 17, 16, 21)
+        self.time_of_events['FTP']['End'] = datetime.dstetime(2018, 10, 17, 17, 12)
+
+        self.time_of_events['MOBILITY'] = dict()
+        self.time_of_events['MOBILITY']['Start'] = datetime.dstetime(2018, 10, 17, 17, 12)
+        self.time_of_events['MOBILITY']['End'] = datetime.datetime(2018, 10, 17, 52)
+
+        self.time_of_events['RANDOM'] = dict()
+        self.time_of_events['RANDOM']['Start'] = datetime.datetime(2018, 10, 17, 52)
+        self.time_of_events['RANDOM']['End'] = datetime.datetime(2018, 10, 18, 5)
+
+    def getEvents(self):
+        """
+        Function that provides time of each experiment.
+        :return:  Dictionary of events ewith time
+        """
+        return self.time_of_events
 
     def getFileList(self, directoryName=''):
         """
