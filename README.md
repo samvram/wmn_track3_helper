@@ -10,6 +10,8 @@ Networks**, taught at **Indian Institute of Space Science and Technology**.
 
 A function `getEvents()` has been added, which returns `datetime` style objects which can then be used to simplify the process of getting data during each experiment.
 
+All codes are written with appropriate variable names to ease the understanding, sufficient scripts are provided to demonstrate usage.
+
 Read the code for a *still representation* with required comments [here](https://github.com/samvram/wmn_track3_helper/blob/master/script_for_team_2.py).
 
 Read the code for a *flow simulation* [here](https://github.com/samvram/wmn_track3_helper/blob/master/script_for_team_2_Flow_Sim.py).
@@ -35,5 +37,69 @@ The video for which the simulation is running can be downloaded [here](https://g
 
 You can watch the video [here](https://vimeo.com/296643134) or by clicking on the picture above.
 
+### TCP Analysis
+
+Topology as observed during TCP Analysis can be seen [here](https://youtu.be/hfi9JHqzS68).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/TCP.mp4).
+
+### UDP Analysis
+
+Topology as observed during UDP Analysis can be seen [here](https://youtu.be/TN1P9VL3luw).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/UDP.mp4).
+
+
+### PING Analysis
+
+Topology as observed during PING Analysis can be seen [here](https://youtu.be/_mnge4t57gA).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/PING.mp4).
+
+### VoIP Analysis
+
+Topology as observed during VoIP Analysis can be seen [here](https://youtu.be/ljtKtckNPts).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/VOIP.mp4).
+
+### FTP Analysis
+
+Topology as observed during FTP Analysis can be seen [here](https://youtu.be/qPvU1A26Q0k).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/FTP.mp4).
+
+### RAIN Adaptation
+
+Topology as observed during Rains can be seen [here](https://youtu.be/liYtAgqzZZw).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/RAIN.mp4).
+
+### Mobility Analysis
+
+Topology as observed during mobility experiments can be seen [here](https://youtu.be/hcXZPVRfgEA).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/MOBILITY.mp4).
+
+### Ankit Verma - Node 22 - Mobility
+
+Topology as observed by Ankit during mobility can be seen [here](https://youtu.be/s69cS95N8J4).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/MobilityOF22.mp4).
+
+### Random Walk Analysis
+
+Topology as observed during random walk experiments can be seen [here](https://youtu.be/XNgPRLfWyow).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/RANDOM.mp4).
+
+### Pratik Wankhede - Node 31 - Random Walk
+
+Topology as observed by Pratik during Random Walk can be seen [here](https://youtu.be/JU7BMS1V5YE).  
+
+Also the file can be downloaded from this [link](https://github.com/samvram/wmn_track3_helper/tree/master/Videos/RandomOF32.mp4).
+
+### Arnab Karmakar - Node 63 - Random Walk
+
+Topology as observed by Arnab during Random Walk can be seen [here](https://youtu.be/OiuPQILEp5w).  
 
 ## Work in Progress(WIP)
