@@ -8,6 +8,8 @@ Networks**, taught at **Indian Institute of Space Science and Technology**.
 
 ## Usage
 
+A function `getEvents()` has been added, which returns `datetime` style objects which can then be used to simplify the process of getting data during each experiment.
+
 Read the code for a *still representation* with required comments [here](https://github.com/samvram/wmn_track3_helper/blob/master/script_for_team_2.py).
 
 Read the code for a *flow simulation* [here](https://github.com/samvram/wmn_track3_helper/blob/master/script_for_team_2_Flow_Sim.py).
