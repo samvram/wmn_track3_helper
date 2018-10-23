@@ -13,7 +13,7 @@ Import the custom class for processing data,
 th = topologyHelper()
 
 # Provide the directory in which the data is present
-file_list = th.getFileList('data')
+file_list = th.getFileList('../10_10_10_22/track3_exp_data/data/')
 
 # Parse a file only
 topology_info = th.parseFile(file_list[1000])
