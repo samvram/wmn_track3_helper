@@ -228,6 +228,7 @@ class topologyHelper:
                 cost = dict()
                 for node1 in node_loc.keys():
                     cost[node1] = dict()
+                    up_time[node1] = dict()
                     for node2 in node_loc.keys():
                         cost[node1][node2] = 'INFINITE'
 
@@ -236,6 +237,7 @@ class topologyHelper:
                     node2 = df['Last hop IP'][i].split('.')[-1]
                     if node1 in node_loc.keys() and node2 in node_loc.keys():
                         cost[node1][node2] = df['Cost'][i]
+
 
                 if plotSarath == False:
                     for node in node_loc.keys():
