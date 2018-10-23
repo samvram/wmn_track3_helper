@@ -13,7 +13,7 @@ Import the custom class for processing data,
 th = topologyHelper(freq=10)
 
 # Provide the directory in which the data is present
-file_list = th.getFileList('../team-10-data-total/')
+file_list = th.getFileList('data')
 
 # Parse a file only
 topology_info = th.parseFile(file_list[0])

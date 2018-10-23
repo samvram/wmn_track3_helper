@@ -23,12 +23,15 @@ The results need some explanation:
 
 The result is something in 3D which you can interactively see and visualize,
 
-[![Output](Working%20Code.png 'Output')](https://vimeo.com/296228197)
+[![Output](Working%20Code.png 'Output')](https://vimeo.com/296643134)
 
 The video for which the simulation is running can be downloaded [here](https://github.com/samvram/wmn_track3_helper/raw/master/flowSim.mp4).
 "Right Click, Save as" the above link to download.
 
-You can watch the video [here](https://vimeo.com/296228197) or by clicking on the picture above.
+<iframe src="https://player.vimeo.com/video/296643134" width="640" height="480" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+<p><a href="https://vimeo.com/296643134">WMN track 3 topology</a> from <a href="https://vimeo.com/user90848762">Samvram Sahu</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
+
+You can watch the video [here](https://vimeo.com/296643134) or by clicking on the picture above.
 
 
 ## Work in Progress(WIP)
