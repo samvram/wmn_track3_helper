@@ -13,7 +13,7 @@ Import the custom class for processing data,
 th = topologyHelper(freq=10)
 
 # Provide the directory in which the data is present
-file_list = th.getFileList('../team-10-data-total/')
+file_list = th.getFileList('data')
 
 # Parse a file only
 topology_info = th.parseFile(file_list[0])
@@ -33,6 +33,6 @@ for file in file_list[1:1000]:
 # th.representTopology(topology)
 
 # A flow topology
-th.flowTopology(topology_info_list, fileName)
+th.flowTopology(topology_info_list,fileName,"Hi there!", True, True)
 
 

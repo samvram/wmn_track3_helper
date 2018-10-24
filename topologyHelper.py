@@ -26,42 +26,77 @@ class topologyHelper:
     def __init__(self, freq):
         self.freq = freq
         self.i = 0
+
         self.animate = True
         self.time_of_events = dict()
+
+        self.node_loc = {'10': vector(-32, 2 - 9, 0),
+                    '11': vector(-28, 2 - 9, 0),
+                    '12': vector(-30, -2 - 9, 0),
+                    '20': vector(-22, 2 - 6, 0),
+                    '21': vector(-18, 2 - 6, 0),
+                    '22': vector(-20, -2 - 6, 0),
+                    '40': vector(-12, 2 - 3, 0),
+                    '41': vector(-8, 2 - 3, 0),
+                    '42': vector(-10, -2 - 3, 0),
+                    '50': vector(-2, 2, 0),
+                    '51': vector(2, 2, 0),
+                    '52': vector(0, -2, 0),
+                    '54': vector(-3, -2, 0),
+                    '70': vector(8, 2 - 3, 0),
+                    '71': vector(12, 2 - 3, 0),
+                    '72': vector(10, -2 - 3, 0),
+                    '80': vector(18, 2 - 6, 0),
+                    '81': vector(22, 2 - 6, 0),
+                    '82': vector(20, -2 - 6, 0),
+                    '100': vector(28, 2 - 9, 0),
+                    '101': vector(32, 2 - 9, 0),
+                    '102': vector(30, -2 - 9, 0),
+                    '30': vector(-17, 2 - 4.5, 12),
+                    '31': vector(-13, 2 - 4.5, 12),
+                    '32': vector(-15, -2 - 4.5, 12),
+                    '60': vector(-2, 2, 12),
+                    '61': vector(2, 2, 12),
+                    '63': vector(0, -2, 12),
+                    '90': vector(13, 2 - 4.5, 12),
+                    '91': vector(17, 2 - 4.5, 12),
+                    '92': vector(15, -2 - 4.5, 12),
+                    '110': vector(-32, -2 - 9, 0),
+                    '5': vector(15, 0 - 4.5, 3)}
 
         scene.bind('keydown', self.changeRate)
 
         self.time_of_events['TCP'] = dict()
-        self.time_of_events['TCP']['Start'] = datetime.datetime(2018, 10, 17, 13, 2)
-        self.time_of_events['TCP']['End'] = datetime.datetime(2018, 10, 17, 14, 00)
+        self.time_of_events['TCP']['Start'] = datetime.datetime(2018, 10, 13, 13, 2)
+        self.time_of_events['TCP']['End'] = datetime.datetime(2018, 10, 13, 14, 00)
 
-        self.time_of_events['Rain'] = dict()
-        self.time_of_events['Rain']['Start'] = datetime.datetime(2018, 10, 17, 14, 00)
-        self.time_of_events['Rain']['End'] = datetime.datetime(2018, 10, 17, 14, 56)
+        self.time_of_events['RAIN'] = dict()
+        self.time_of_events['RAIN']['Start'] = datetime.datetime(2018, 10, 13, 14, 00)
+        self.time_of_events['RAIN']['End'] = datetime.datetime(2018, 10, 13, 14, 56)
 
         self.time_of_events['UDP'] = dict()
-        self.time_of_events['UDP']['Start'] = datetime.datetime(2018, 10, 17, 14, 56)
-        self.time_of_events['UDP']['End'] = datetime.datetime(2018, 10, 17, 15, 23)
+        self.time_of_events['UDP']['Start'] = datetime.datetime(2018, 10, 13, 14, 56)
+        self.time_of_events['UDP']['End'] = datetime.datetime(2018, 10, 13, 15, 23)
 
         self.time_of_events['PING'] = dict()
-        self.time_of_events['PING']['Start'] = datetime.datetime(2018, 10, 17, 15, 23)
-        self.time_of_events['PING']['End'] = datetime.datetime(2018, 10, 17, 15, 40)
+        self.time_of_events['PING']['Start'] = datetime.datetime(2018, 10, 13, 15, 23)
+        self.time_of_events['PING']['End'] = datetime.datetime(2018, 10, 13, 15, 40)
 
         self.time_of_events['VoIP'] = dict()
-        self.time_of_events['VoIP']['Start'] = datetime.datetime(2018, 10, 17, 15, 40)
-        self.time_of_events['VoIP']['End'] = datetime.datetime(2018, 10, 17, 16, 21)
+        self.time_of_events['VoIP']['Start'] = datetime.datetime(2018, 10, 13, 15, 40)
+        self.time_of_events['VoIP']['End'] = datetime.datetime(2018, 10, 13, 16, 21)
 
         self.time_of_events['FTP'] = dict()
-        self.time_of_events['FTP']['Start'] = datetime.datetime(2018, 10, 17, 16, 21)
-        self.time_of_events['FTP']['End'] = datetime.datetime(2018, 10, 17, 17, 12)
+        self.time_of_events['FTP']['Start'] = datetime.datetime(2018, 10, 13, 16, 21)
+        self.time_of_events['FTP']['End'] = datetime.datetime(2018, 10, 13, 17, 12)
 
         self.time_of_events['MOBILITY'] = dict()
-        self.time_of_events['MOBILITY']['Start'] = datetime.datetime(2018, 10, 17, 17, 12)
-        self.time_of_events['MOBILITY']['End'] = datetime.datetime(2018, 10, 17, 17, 52)#datetime.datetime(2018, 10, 17, 52, 20)
+        self.time_of_events['MOBILITY']['Start'] = datetime.datetime(2018, 10, 13, 17, 12)
+        self.time_of_events['MOBILITY']['End'] = datetime.datetime(2018, 10, 13, 17, 52)#datetime.datetime(2018, 10, 17, 52, 20)
 
         self.time_of_events['RANDOM'] = dict()
-        self.time_of_events['RANDOM']['Start'] = datetime.datetime(2018, 10, 17,17, 52)
-        self.time_of_events['RANDOM']['End'] = datetime.datetime(2018, 10, 17, 18, 5)
+        self.time_of_events['RANDOM']['Start'] = datetime.datetime(2018, 10, 13,17, 52)
+        self.time_of_events['RANDOM']['End'] = datetime.datetime(2018, 10, 13, 18, 5)
 
     def getEvents(self):
         """
@@ -113,75 +148,42 @@ class topologyHelper:
         input plotSarath : False(default), provide as True, if you want to plot Sarath Sir
         output topology representation in a tab
         """
-        node_loc = {'10': vector(-32, 2 - 9, 0),
-                    '11': vector(-28, 2 - 9, 0),
-                    '12': vector(-30, -2 - 9, 0),
-                    '20': vector(-22, 2 - 6, 0),
-                    '21': vector(-18, 2 - 6, 0),
-                    '22': vector(-20, -2 - 6, 0),
-                    '40': vector(-12, 2 - 3, 0),
-                    '41': vector(-8, 2 - 3, 0),
-                    '42': vector(-10, -2 - 3, 0),
-                    '50': vector(-2, 2, 0),
-                    '51': vector(2, 2, 0),
-                    '52': vector(0, -2, 0),
-                    '54': vector(-3, -2, 0),
-                    '70': vector(8, 2 - 3, 0),
-                    '71': vector(12, 2 - 3, 0),
-                    '72': vector(10, -2 - 3, 0),
-                    '80': vector(18, 2 - 6, 0),
-                    '81': vector(22, 2 - 6, 0),
-                    '82': vector(20, -2 - 6, 0),
-                    '100': vector(28, 2 - 9, 0),
-                    '101': vector(32, 2 - 9, 0),
-                    '102': vector(30, -2 - 9, 0),
-                    '30': vector(-17, 2 - 4.5, 12),
-                    '31': vector(-13, 2 - 4.5, 12),
-                    '32': vector(-15, -2 - 4.5, 12),
-                    '60': vector(-2, 2, 12),
-                    '61': vector(2, 2, 12),
-                    '63': vector(0, -2, 12),
-                    '90': vector(13, 2 - 4.5, 12),
-                    '91': vector(17, 2 - 4.5, 12),
-                    '92': vector(15, -2 - 4.5, 12),
-                    '110': vector(-32, -2 - 9, 0),
-                    '5': vector(15, 0 - 4.5, 3)}
 
         label(pos=vector(0, 0, 0), xoffset=-230, yoffset=190, line=False, box=False, text=fName)
         label(pos=vector(0, 0, 0), xoffset=200, yoffset=190, line=False, box=False,
               text="Rate: " + str(self.freq))
 
-        for node in node_loc.keys():
+        for node in self.node_loc.keys():
             if node[-1] == '0':
-                sphere(pos=node_loc[node], radius=0.5, color=color.yellow)
+                sphere(pos=self.node_loc[node], radius=0.5, color=color.yellow)
             elif node == '5' or node == '110':
-                sphere(pos=node_loc[node], radius=0.5, color=color.green)
+                sphere(pos=self.node_loc[node], radius=0.5, color=color.green)
             else:
-                sphere(pos=node_loc[node], radius=0.5, color=color.red)
+                sphere(pos=self.node_loc[node], radius=0.5, color=color.red)
 
         cost = dict()
-        for node1 in node_loc.keys():
+        for node1 in self.node_loc.keys():
             cost[node1] = dict()
-            for node2 in node_loc.keys():
+            for node2 in self.node_loc.keys():
                 cost[node1][node2] = 'INFINITE'
 
         for i in range(0, len(df)):
             node1 = df['Dest. IP'][i].split('.')[-1]
             node2 = df['Last hop IP'][i].split('.')[-1]
-            if node1 in node_loc.keys() and node2 in node_loc.keys():
+            if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
                 cost[node1][node2] = df['Cost'][i]
 
         if plotSarath == False:
-            for node in node_loc.keys():
+            for node in self.node_loc.keys():
                 cost['5'][node] = 'INFINITE'
                 cost[node]['5'] = 'INFINITE'
 
         c = dict()
-        for node1 in node_loc.keys():
+        for node1 in self.node_loc.keys():
             c[node1] = dict()
-            for node2 in node_loc.keys():
+            for node2 in self.node_loc.keys():
                 if cost[node1][node2] != 'INFINITE':
-                    c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
+                    c[node1][node2] = curve(pos=[self.node_loc[node1], self.node_loc[node2]])
         return 0
 
     def changeRate(self, evt):
@@ -202,13 +204,12 @@ class topologyHelper:
         if self.i <= 0:
             self.i = 0
 
-
         if s == ' ':
             self.animate = not self.animate
 
 
 
-    def flowTopology(self, list_of_topology, fileName, plotSarath=False):
+    def flowTopology(self, list_of_topology, fileName, event="no_event", plotSarath=False, node_name=False, node_to_show = 'ALL'):
         """
         Function to simulate the flow of topology in time
         :param list_of_topology: the list of topology tables
@@ -216,99 +217,81 @@ class topologyHelper:
         :param freq: The rate at which simulation runs
         :return:
         """
+        if node_to_show=='ALL':
+            node_to_show = self.node_loc.keys()
+        # count = 0
 
-        count = 0
-        node_loc = {'10': vector(-32, 2 - 9, 0),
-                    '11': vector(-28, 2 - 9, 0),
-                    '12': vector(-30, -2 - 9, 0),
-                    '20': vector(-22, 2 - 6, 0),
-                    '21': vector(-18, 2 - 6, 0),
-                    '22': vector(-20, -2 - 6, 0),
-                    '40': vector(-12, 2 - 3, 0),
-                    '41': vector(-8, 2 - 3, 0),
-                    '42': vector(-10, -2 - 3, 0),
-                    '50': vector(-2, 2, 0),
-                    '51': vector(2, 2, 0),
-                    '52': vector(0, -2, 0),
-                    '54': vector(-3, -2, 0),
-                    '70': vector(8, 2 - 3, 0),
-                    '71': vector(12, 2 - 3, 0),
-                    '72': vector(10, -2 - 3, 0),
-                    '80': vector(18, 2 - 6, 0),
-                    '81': vector(22, 2 - 6, 0),
-                    '82': vector(20, -2 - 6, 0),
-                    '100': vector(28, 2 - 9, 0),
-                    '101': vector(32, 2 - 9, 0),
-                    '102': vector(30, -2 - 9, 0),
-                    '30': vector(-17, 2 - 4.5, 12),
-                    '31': vector(-13, 2 - 4.5, 12),
-                    '32': vector(-15, -2 - 4.5, 12),
-                    '60': vector(-2, 2, 12),
-                    '61': vector(2, 2, 12),
-                    '63': vector(0, -2, 12),
-                    '90': vector(13, 2 - 4.5, 12),
-                    '91': vector(17, 2 - 4.5, 12),
-                    '92': vector(15, -2 - 4.5, 12),
-                    '110': vector(-32, -2 - 9, 0),
-                    '5': vector(15, 0 - 4.5, 3)}
-
-        for node in node_loc.keys():
+        for node in self.node_loc.keys():
             if node[-1] == '0':
-                sphere(pos=node_loc[node], radius=0.5, color=color.yellow)
+                sphere(pos=self.node_loc[node], radius=0.5, color=color.yellow)
             elif node == '5' or node == '110':
-                sphere(pos=node_loc[node], radius=0.5, color=color.green)
+                sphere(pos=self.node_loc[node], radius=0.5, color=color.green)
             else:
-                sphere(pos=node_loc[node], radius=0.5, color=color.red)
+                sphere(pos=self.node_loc[node], radius=0.5, color=color.red)
 
         print('Starting animation')
         firstTime = True
         self.i = 0
+        time_label = label(pos=vector(0, 0, 0), xoffset=-230, yoffset=190, line=False, box=False, text=fileName[self.i])
+        rate_label = label(pos=vector(0, 0, 0), xoffset=200, yoffset=190, line=False, box=False,
+              text="Rate: " + str(self.freq))
+        if event != "no_event":
+            label(pos=vector(0, 0, 0), xoffset=0, yoffset=160, line=False, box=True,
+                               text=event)
+
+        if node_name:
+            for i in self.node_loc.keys():
+                label(pos=self.node_loc[i], xoffset=0.5, yoffset=0.5, line=True, box=False,
+                      text=i)
         while True:
             while self.animate:
                 self.i %= len(list_of_topology)
                 df = list_of_topology[self.i]
-                label(pos=vector(0, 0, 0), xoffset=-230, yoffset=190, line=False, box=False, text=fileName[self.i])
-                label(pos=vector(0, 0, 0), xoffset=200, yoffset=190, line=False, box=False,
-                      text="Rate: " + str(self.freq))
+
+                time_label.text = fileName[self.i]
+                rate_label.text = "Rate: " + str(self.freq)
 
                 rate(self.freq)
                 cost = dict()
-                for node1 in node_loc.keys():
+                for node1 in self.node_loc.keys():
                     cost[node1] = dict()
-                    for node2 in node_loc.keys():
+                    for node2 in self.node_loc.keys():
                         cost[node1][node2] = 'INFINITE'
 
                 for i in range(0, len(df)):
                     node1 = df['Dest. IP'][i].split('.')[-1]
                     node2 = df['Last hop IP'][i].split('.')[-1]
-                    if node1 in node_loc.keys() and node2 in node_loc.keys():
+                    if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
                         cost[node1][node2] = df['Cost'][i]
 
                 if plotSarath == False:
-                    for node in node_loc.keys():
+                    for node in self.node_loc.keys():
                         cost['5'][node] = 'INFINITE'
                         cost[node]['5'] = 'INFINITE'
 
                 if firstTime == True:
                     c = dict()
 
-                    for node1 in node_loc.keys():
+                    for node1 in self.node_loc.keys():
                         c[node1] = dict()
-                        for node2 in node_loc.keys():
+                        for node2 in self.node_loc.keys():
                             if cost[node1][node2] != 'INFINITE':
-                                c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
+                                if node1 in node_to_show or node2 in node_to_show:
+                                    c[node1][node2] = curve(pos=[self.node_loc[node1], self.node_loc[node2]])
                             else:
-                                c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
-                                c[node1][node2].visible = False
+                                if node1 in node_to_show or node2 in node_to_show:
+                                    c[node1][node2] = curve(pos=[self.node_loc[node1], self.node_loc[node2]])
+                                    c[node1][node2].visible = False
                     firstTime = False
                 else:
-                    for node1 in node_loc.keys():
-                        for node2 in node_loc.keys():
+                    for node1 in self.node_loc.keys():
+                        for node2 in self.node_loc.keys():
                             if cost[node1][node2] == 'INFINITE':
-                                c[node1][node2].visible = False
-
+                                if node1 in node_to_show or node2 in node_to_show:
+                                    c[node1][node2].visible = False
                             else:
-                                c[node1][node2].visible = True
+                                if node1 in node_to_show or node2 in node_to_show:
+                                    c[node1][node2].visible = True
 
                 self.i += 1
                 if self.i >= len(list_of_topology):
