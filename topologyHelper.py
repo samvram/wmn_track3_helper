@@ -14,8 +14,6 @@ if sys.version_info[0] < 3:
 else:
     from io import StringIO
 
-import math
-
 
 class topologyHelper:
     """
@@ -207,6 +205,64 @@ class topologyHelper:
         if s == ' ':
             self.animate = not self.animate
 
+
+    def get_link_nums(self, list_of_topology, fileName):
+        while True:
+            while self.animate:
+                self.i %= len(list_of_topology)
+                df = list_of_topology[self.i]
+
+                time_label.text = fileName[self.i]
+                rate_label.text = "Rate: " + str(self.freq)
+
+                rate(self.freq)
+                cost = dict()
+                for node1 in self.node_loc.keys():
+                    cost[node1] = dict()
+                    for node2 in self.node_loc.keys():
+                        cost[node1][node2] = 'INFINITE'
+
+                for i in range(0, len(df)):
+                    node1 = df['Dest. IP'][i].split('.')[-1]
+                    node2 = df['Last hop IP'][i].split('.')[-1]
+                    if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
+                        cost[node1][node2] = df['Cost'][i]
+
+                if plotSarath == False:
+                    for node in self.node_loc.keys():
+                        cost['5'][node] = 'INFINITE'
+                        cost[node]['5'] = 'INFINITE'
+
+                if firstTime == True:
+                    c = dict()
+
+                    for node1 in self.node_loc.keys():
+                        c[node1] = dict()
+                        for node2 in self.node_loc.keys():
+                            if cost[node1][node2] != 'INFINITE':
+                                if node1 in node_to_show or node2 in node_to_show:
+                                    c[node1][node2] = curve(pos=[self.node_loc[node1], self.node_loc[node2]])
+                            else:
+                                if node1 in node_to_show or node2 in node_to_show:
+                                    c[node1][node2] = curve(pos=[self.node_loc[node1], self.node_loc[node2]])
+                                    c[node1][node2].visible = False
+                    firstTime = False
+                else:
+                    for node1 in self.node_loc.keys():
+                        for node2 in self.node_loc.keys():
+                            if cost[node1][node2] == 'INFINITE':
+                                if node1 in node_to_show or node2 in node_to_show:
+                                    c[node1][node2].visible = False
+                            else:
+                                if node1 in node_to_show or node2 in node_to_show:
+                                    c[node1][node2].visible = True
+
+                self.i += 1
+                if self.i >= len(list_of_topology):
+                    print('Animation over')
+                    firstTime = True
+                    self.i = 0
+        return 0
 
 
     def flowTopology(self, list_of_topology, fileName, event="no_event", plotSarath=False, node_name=False, node_to_show = 'ALL'):
