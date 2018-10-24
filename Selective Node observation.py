@@ -8,7 +8,7 @@ Import the custom class for processing data,
 th = topologyHelper(freq=10)
 
 # Provide the directory in which the data is present
-file_list = th.getFileList('data')
+file_list = th.getFileList('../team-10-data-total/')
 
 # Get time of occurence of various events
 event_times = th.getEvents()
