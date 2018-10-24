@@ -55,6 +55,7 @@ class topologyHelper:
                     '32': vector(-15, -2 - 4.5, 12),
                     '60': vector(-2, 2, 12),
                     '61': vector(2, 2, 12),
+                    '62': vector(4, 2, 12),
                     '63': vector(0, -2, 12),
                     '90': vector(13, 2 - 4.5, 12),
                     '91': vector(17, 2 - 4.5, 12),
@@ -207,62 +208,42 @@ class topologyHelper:
 
 
     def get_link_nums(self, list_of_topology, fileName):
-        while True:
-            while self.animate:
-                self.i %= len(list_of_topology)
-                df = list_of_topology[self.i]
+        self.i = 0
+        links_num = dict.fromkeys(fileName, 0)
+        while self.i < len(list_of_topology):
+            fn = fileName[self.i]
+            counter = 0
 
-                time_label.text = fileName[self.i]
-                rate_label.text = "Rate: " + str(self.freq)
+            df = list_of_topology[self.i]
 
-                rate(self.freq)
-                cost = dict()
-                for node1 in self.node_loc.keys():
-                    cost[node1] = dict()
-                    for node2 in self.node_loc.keys():
-                        cost[node1][node2] = 'INFINITE'
+            cost = dict()
+            for node1 in self.node_loc.keys():
+                cost[node1] = dict()
+                for node2 in self.node_loc.keys():
+                    cost[node1][node2] = 'INFINITE'
 
-                for i in range(0, len(df)):
-                    node1 = df['Dest. IP'][i].split('.')[-1]
-                    node2 = df['Last hop IP'][i].split('.')[-1]
-                    if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
-                        cost[node1][node2] = df['Cost'][i]
+            for j in range(0, len(df)):
+                node1 = df['Dest. IP'][j].split('.')[-1]
+                node2 = df['Last hop IP'][j].split('.')[-1]
+                if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
+                    counter += 1
+                    cost[node1][node2] = df['Cost'][j]
 
-                if plotSarath == False:
-                    for node in self.node_loc.keys():
-                        cost['5'][node] = 'INFINITE'
-                        cost[node]['5'] = 'INFINITE'
-
-                if firstTime == True:
-                    c = dict()
-
-                    for node1 in self.node_loc.keys():
-                        c[node1] = dict()
-                        for node2 in self.node_loc.keys():
-                            if cost[node1][node2] != 'INFINITE':
-                                if node1 in node_to_show or node2 in node_to_show:
-                                    c[node1][node2] = curve(pos=[self.node_loc[node1], self.node_loc[node2]])
-                            else:
-                                if node1 in node_to_show or node2 in node_to_show:
-                                    c[node1][node2] = curve(pos=[self.node_loc[node1], self.node_loc[node2]])
-                                    c[node1][node2].visible = False
-                    firstTime = False
-                else:
-                    for node1 in self.node_loc.keys():
-                        for node2 in self.node_loc.keys():
-                            if cost[node1][node2] == 'INFINITE':
-                                if node1 in node_to_show or node2 in node_to_show:
-                                    c[node1][node2].visible = False
-                            else:
-                                if node1 in node_to_show or node2 in node_to_show:
-                                    c[node1][node2].visible = True
-
-                self.i += 1
-                if self.i >= len(list_of_topology):
-                    print('Animation over')
-                    firstTime = True
-                    self.i = 0
-        return 0
+            counter = 0
+            c = dict()
+            for node1 in self.node_loc.keys():
+                c[node1] = dict()
+                for node2 in self.node_loc.keys():
+                    if cost[node1][node2] != 'INFINITE' and cost[node2][node1] != 'INFINITE':
+                        counter += 1
+                        links_num[fn] += 1
+            if links_num[fn] % 2 == 0:
+                links_num[fn] /= 2
+                print(fn+" : "+str(links_num[fn]))
+            else:
+                print("Something went wrong. Count:"+str(links_num[fn]))
+            self.i += 1
+        return links_num
 
 
     def flowTopology(self, list_of_topology, fileName, event="no_event", plotSarath=False, node_name=False, node_to_show = 'ALL'):
@@ -331,7 +312,7 @@ class topologyHelper:
                     for node1 in self.node_loc.keys():
                         c[node1] = dict()
                         for node2 in self.node_loc.keys():
-                            if cost[node1][node2] != 'INFINITE':
+                            if cost[node1][node2] != 'INFINITE' and cost[node2][node1] != 'INFINITE':
                                 if node1 in node_to_show or node2 in node_to_show:
                                     c[node1][node2] = curve(pos=[self.node_loc[node1], self.node_loc[node2]])
                             else:
@@ -342,12 +323,12 @@ class topologyHelper:
                 else:
                     for node1 in self.node_loc.keys():
                         for node2 in self.node_loc.keys():
-                            if cost[node1][node2] == 'INFINITE':
-                                if node1 in node_to_show or node2 in node_to_show:
-                                    c[node1][node2].visible = False
-                            else:
+                            if cost[node1][node2] != 'INFINITE' and cost[node2][node1] != 'INFINITE':
                                 if node1 in node_to_show or node2 in node_to_show:
                                     c[node1][node2].visible = True
+                            else:
+                                if node1 in node_to_show or node2 in node_to_show:
+                                    c[node1][node2].visible = False
 
                 self.i += 1
                 if self.i >= len(list_of_topology):
