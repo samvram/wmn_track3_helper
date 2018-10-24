@@ -299,7 +299,7 @@ class topologyHelper:
                                 c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
                             else:
                                 c[node1][node2] = curve(pos=[node_loc[node1], node_loc[node2]])
-                                c[node1][node2].visible = False 
+                                c[node1][node2].visible = False
                     firstTime = False
                 else:
                     for node1 in node_loc.keys():
