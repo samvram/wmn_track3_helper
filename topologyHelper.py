@@ -97,6 +97,10 @@ class TopologyHelper:
         self.time_of_events['RANDOM']['Start'] = datetime(2018, 10, 13, 17, 52)
         self.time_of_events['RANDOM']['End'] = datetime(2018, 10, 13, 18, 5)
 
+        self.time_of_events["no_event"] = dict()
+        self.time_of_events["no_event"]['Start'] = datetime(2018, 10, 13, 13, 2)
+        self.time_of_events["no_event"]['Start'] = datetime(2018, 10, 13, 18, 5)
+
     def get_events(self):
         """
         Function that provides time of each experiment.
@@ -242,12 +246,11 @@ class TopologyHelper:
             self.i += 1
         return route_data
 
-    def get_down_time(self, list_of_topology, filename):
+    def get_down_time(self, list_of_topology):
         """
         This function gets the link down time of ALL the links in the list_of_topology topology data.
 
         :param list_of_topology: a list containing the topology information.
-        :param filename: a list of file names corresponding to the list of topology
         :return: it returns a dictionary. The dictionary is two dimension, each dimension is a node. Hence the
         dictionary essentially denote all the possible links. The value of each key is the number of seconds the link
         was down.
@@ -284,13 +287,13 @@ class TopologyHelper:
                         c[node1][node2] -= 1
             self.i += 1
 
-        with open(filename, 'w') as f:
-            for i in range(0, len(nodes)):
-                node1 = nodes[i]
-                for j in range(i, len(nodes)):
-                    node2 = nodes[j]
-                    if node1 != node2:
-                        f.write(node1+","+node2+","+str(c[node1][node2])+"\n")
+        # with open(filename, 'w') as f:
+        #     for i in range(0, len(nodes)):
+        #         node1 = nodes[i]
+        #         for j in range(i, len(nodes)):
+        #             node2 = nodes[j]
+        #             if node1 != node2:
+        #                 f.write(node1+","+node2+","+str(c[node1][node2])+"\n")
         return c
 
     @staticmethod
@@ -513,6 +516,7 @@ class TopologyHelper:
             cost[node1] = dict()
             for node2 in self.node_loc.keys():
                 cost[node1][node2] = 'INFINITE'
+
         while self.i < len(list_of_topology):
             fn = file_name[self.i]
             counter = 0

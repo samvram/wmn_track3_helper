@@ -2,9 +2,6 @@
 from TopologyHelper import TopologyHelper
 import pickle as pk
 
-# Create an object of the class to begin
-th = TopologyHelper(freq=10)
-
 
 def read_parse_raw_data(path):
     """
@@ -57,7 +54,7 @@ def route_information(th_object, topology_info, file_name, node1, node2, path):
     :param path: the path where to save the .csv file, it should be path to the directory and not to the file
     :return:
     """
-    save_path = path + node1 + "_" + node2 + "_vs_t.csv"
+    save_path = path + node1 + "_" + node2 + "_vs_t2.csv"
     route_data = th_object.get_node_len_etx(topology_info, node1, node2)
     with open(save_path, "w+") as f_name:
         f_name.write("Time,No_hopes,Cost\n")
@@ -88,6 +85,27 @@ def node_link_num(th_object, topology_info, file_name, node1, node2, path):
         for k in file_name:
             f.write(str(k)[11:-7] + "," + str(links_num[k]) + "\n")
     print(node1 + " " + node2 + " link number exported")
+
+
+def get_down_times(th_object, topology_info, path):
+    """
+    This function is use to get the link-down profile for th topology_info list passed
+
+    :param th_object: The object of the TopologyHelper class
+    :param topology_info: the list containing the topology information
+    :param path: The path to the file where the results will be saved. It should include the file name too
+    :return:
+    """
+    c = th_object.get_down_time(topology_info)
+    nodes = list(th_object.node_loc.keys())
+    with open(path, 'w') as f:
+        f.write("Node1,Node2,Link down time (seconds)\n")
+        for i in range(0, len(nodes)):
+            node1 = nodes[i]
+            for j in range(i, len(nodes)):
+                node2 = nodes[j]
+                if node1 != node2:
+                    f.write(node1 + "," + node2 + "," + str(c[node1][node2]) + "\n")
 
 
 def node_route_data(th_object, topology_info, file_name):
@@ -131,7 +149,43 @@ def node_link_num_data(th_object, topology_info, file_name):
     node_link_num(th_object, topology_info, file_name, "20", "91s", "extracted_data/Link_number/")
 
 
+def get_event_user_input(th_object):
+    eve_times = th_object.get_events()
+
+    print('From the mentioned events type the event for which you want to observe:')
+    for key in eve_times.keys():
+        print(key)
+
+    eve = input('Enter the event:')
+
+    while eve not in eve_times.keys():
+        eve = input('Enter one of the above events name :')
+
+    print('Thank you! We are processing the request')
+
+    start_ind = -1
+    end_ind = -1
+    if eve == "no_event":
+        start_ind = 0
+        end_ind = len(fileName) - 1
+        return start_ind, end_ind, eve
+
+    for i in range(0, len(fileName)):
+        if fileName[i] >= eve_times[eve]['Start'] and start_ind == -1:
+            start_ind = i
+        if fileName[i] > eve_times[eve]['End'] and end_ind == -1:
+            end_ind = i
+            break
+    return start_ind, end_ind, eve
+
+
 fileName, topology_info_list = read_parsed_data('parsed_data/parsed_filenames_combined_data',
                                                 'parsed_data/parsed_topology_info_combined_data')
 
-th.flow_topology(topology_info_list, fileName, node_name=True)
+th = TopologyHelper(freq=10)    # Create an object of the class to begin
+
+start_index, end_index, event = get_event_user_input(th)
+
+node_route_data(th, topology_info_list[start_index:end_index+1], fileName[start_index:end_index+1])
+
+th.flow_topology(topology_info_list[start_index:end_index+1], fileName[start_index:end_index+1], event=event, node_name=True)
