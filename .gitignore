@@ -4,7 +4,8 @@ __pycache__/
 comp_1
 extracted_data
 desktop.ini
-parsed_data
+parsed_data/parsed_topology_info_combined_data
+parsed_data/desktop.ini
 output_log
 Videos
 .gitignore

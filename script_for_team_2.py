@@ -42,6 +42,20 @@ def read_parsed_data(parsed_filename_path, parsed_topology_data_path):
     return file_name, topology_info
 
 
+def read_networkx_data(parsed_filename_path, networkx_path):
+    """
+
+    :param parsed_filename_path: The path to the parsed file name list
+    :param networkx_path: The path to the list of networkx graphs
+    :return: It returns the list of file names and the list of networkx graphs
+    """
+    with open(parsed_filename_path, 'rb') as f:
+        file_name = pk.load(f)
+    with open(networkx_path, 'rb') as f:
+        networkx_list = pk.load(f)
+    return file_name, networkx_list
+
+
 def route_information(th_object, topology_info, file_name, node1, node2, path):
     """
     This functions gets the route information data and save it to a file to the path passed as path
@@ -87,16 +101,19 @@ def node_link_num(th_object, topology_info, file_name, node1, node2, path):
     print(node1 + " " + node2 + " link number exported")
 
 
-def get_down_times(th_object, topology_info, path):
+def get_down_times(th_object, start, end, path, export_all_down=False):
     """
     This function is use to get the link-down profile for th topology_info list passed
 
     :param th_object: The object of the TopologyHelper class
-    :param topology_info: the list containing the topology information
+    :param start: start index of the analysis
+    :param end: end index of the analysis
     :param path: The path to the file where the results will be saved. It should include the file name too
+    :param export_all_down: If false then the data regarding the link between the nodes which are always down is not
+    written to the csv file. By default it is false
     :return:
     """
-    c = th_object.get_down_time(topology_info)
+    c = th_object.get_down_time(start, end)
     nodes = list(th_object.node_loc.keys())
     with open(path, 'w') as f:
         f.write("Node1,Node2,Link down time (seconds)\n")
@@ -105,7 +122,11 @@ def get_down_times(th_object, topology_info, path):
             for j in range(i, len(nodes)):
                 node2 = nodes[j]
                 if node1 != node2:
-                    f.write(node1 + "," + node2 + "," + str(c[node1][node2]) + "\n")
+                    if not export_all_down:
+                        if c[node1][node2] != (end - start + 1):
+                            f.write(node1 + "," + node2 + "," + str(c[node1][node2]) + "\n")
+                    else:
+                        f.write(node1 + "," + node2 + "," + str(c[node1][node2]) + "\n")
 
 
 def node_route_data(th_object, topology_info, file_name):
@@ -149,6 +170,15 @@ def node_link_num_data(th_object, topology_info, file_name):
     node_link_num(th_object, topology_info, file_name, "20", "91s", "extracted_data/Link_number/")
 
 
+def get_total_link_num(th_object, list_of_topology, filename, path):
+
+    ln = th_object.get_link_nums(list_of_topology, filename)
+    with open(path, 'w') as f:
+        f.write("Time,No_Link \n")
+        for k, v in ln.items():
+            f.write(str(k.date())+","+str(v)+"\n")
+
+
 def get_event_user_input(th_object):
     eve_times = th_object.get_events()
 
@@ -179,13 +209,16 @@ def get_event_user_input(th_object):
     return start_ind, end_ind, eve
 
 
-fileName, topology_info_list = read_parsed_data('parsed_data/parsed_filenames_combined_data',
-                                                'parsed_data/parsed_topology_info_combined_data')
+# fileName1, topology_info_list = read_parsed_data('parsed_data/parsed_filenames_combined_data',
+#                                                 'parsed_data/parsed_topology_info_combined_data')
 
-th = TopologyHelper(freq=10)    # Create an object of the class to begin
+fileName, networkx_data = read_parsed_data('parsed_data/parsed_filenames_combined_data', 'parsed_data/networkx_data')
+
+th = TopologyHelper(networkx_data, True, freq=10)    # Create an object of the class to begin
 
 start_index, end_index, event = get_event_user_input(th)
 
-node_route_data(th, topology_info_list[start_index:end_index+1], fileName[start_index:end_index+1])
-
-th.flow_topology(topology_info_list[start_index:end_index+1], fileName[start_index:end_index+1], event=event, node_name=True)
+# get_total_link_num(th, topology_info_list, fileName, "extracted_data/total_no_link_updated.csv")
+get_down_times(th, start_index, end_index, "extracted_data/Down_Time_profile/"+event+".csv")
+# th.flow_topology(topology_info_list[start_index:end_index+1], fileName[start_index:end_index+1], event=event,
+#                  node_name=True)

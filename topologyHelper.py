@@ -8,6 +8,7 @@ from datetime import datetime
 import pandas as pd
 from io import StringIO
 from vpython import *
+import  networkx as nx
 
 
 class TopologyHelper:
@@ -16,10 +17,16 @@ class TopologyHelper:
     using OSLRD and TCP dump data
     """
 
-    def __init__(self, freq):
+    def __init__(self, list_of_topology, is_networkx, freq=10):
+        """
+        It initializes the TopologyHelper class.
+
+        :param list_of_topology: list of topology or the list of networkx graph
+        :param is_networkx: If true then arugment "list of topology" represents lits of networkx graph
+        :param freq: The initial frequency of the animation
+        """
         self.freq = freq
         self.i = 0
-
         self.animate = True
         self.time_of_events = dict()
         self.node_loc = {'10': vector(-32, 2 - 9, 0),
@@ -57,6 +64,43 @@ class TopologyHelper:
                          '110': vector(-32, -2 - 9, 0),
                          '5': vector(15, 0 - 4.5, 3)}
 
+        if is_networkx:
+            # The passed data to the list_of_topolgy is list of networkx graphs
+            self.topology_graphs = list_of_topology
+        else:
+            gh_temp = nx.Graph()
+
+            gh_temp.add_nodes_from(list(self.node_loc.keys()))
+
+            cost = dict()
+            for node1 in self.node_loc.keys():
+                cost[node1] = dict()
+                for node2 in self.node_loc.keys():
+                    cost[node1][node2] = 'INFINITE'
+
+            self.topology_graphs = []
+            for k in range(0, len(list_of_topology)):
+                self.topology_graphs.append(gh_temp.copy())
+
+                df = list_of_topology[k]
+
+                for j in range(0, len(df)):
+                    node1 = df['Dest. IP'][j].split('.')[-1]
+                    node2 = df['Last hop IP'][j].split('.')[-1]
+                    if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
+                        cost[node1][node2] = df['Cost'][j]
+
+                for node1 in self.node_loc.keys():
+                    for node2 in self.node_loc.keys():
+                        try:
+                            self.topology_graphs[k].add_edge(node2, node1, cost=(float(cost[node1][node2]) +
+                                                                                 float(cost[node2][node1]))/2)
+                        except ValueError:
+                            continue
+                        finally:
+                            cost[node1][node2] = 'INFINITE'
+                            cost[node2][node1] = 'INFINITE'
+
         scene.bind('keydown', self.change_rate)
         scene.background = color.white
         scene.width = 1900
@@ -89,9 +133,9 @@ class TopologyHelper:
         self.time_of_events['FTP']['Start'] = datetime(2018, 10, 13, 16, 21)
         self.time_of_events['FTP']['End'] = datetime(2018, 10, 13, 17, 12)
 
-        self.time_of_events['MOBILITY'] = dict()
-        self.time_of_events['MOBILITY']['Start'] = datetime(2018, 10, 13, 17, 12)
-        self.time_of_events['MOBILITY']['End'] = datetime(2018, 10, 13, 17, 52)  # datetime(2018, 10, 17, 52, 20)
+        self.time_of_events['GROUP_MOBILITY'] = dict()
+        self.time_of_events['GROUP_MOBILITY']['Start'] = datetime(2018, 10, 13, 17, 12)
+        self.time_of_events['GROUP_MOBILITY']['End'] = datetime(2018, 10, 13, 17, 52)  # datetime(2018, 10, 17, 52, 20)
 
         self.time_of_events['RANDOM'] = dict()
         self.time_of_events['RANDOM']['Start'] = datetime(2018, 10, 13, 17, 52)
@@ -246,11 +290,12 @@ class TopologyHelper:
             self.i += 1
         return route_data
 
-    def get_down_time(self, list_of_topology):
+    def get_down_time(self, start, end):
         """
         This function gets the link down time of ALL the links in the list_of_topology topology data.
 
-        :param list_of_topology: a list containing the topology information.
+        :param start: start index of the analysis
+        :param end: end index of the analysis
         :return: it returns a dictionary. The dictionary is two dimension, each dimension is a node. Hence the
         dictionary essentially denote all the possible links. The value of each key is the number of seconds the link
         was down.
@@ -268,25 +313,38 @@ class TopologyHelper:
             c[node1] = dict()
             for j in range(i, len(nodes)):
                 node2 = nodes[j]
-                c[node1][node2] = len(list_of_topology)
+                c[node1][node2] = end - start + 1
 
-        while self.i < len(list_of_topology):
-            df = list_of_topology[self.i]
+        # while self.i < len(list_of_topology):
+        #     df = list_of_topology[self.i]
+        #
+        #     for i in range(0, len(df)):
+        #         node1 = df['Dest. IP'][i].split('.')[-1]
+        #         node2 = df['Last hop IP'][i].split('.')[-1]
+        #         if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
+        #             cost[node1][node2] = df['Cost'][i]
+        #
+        #     counter = 0
+        #     for i in range(0, len(nodes)):
+        #         node1 = nodes[i]
+        #         for j in range(i, len(nodes)):
+        #             node2 = nodes[j]
+        #             if cost[node1][node2] != 'INFINITE' and cost[node1][node2] != 'INFINIT':
+        #                 if cost[node2][node1] != 'INFINITE' and cost[node2][node1] != 'INFINIT':
+        #                     c1[node1][node2] -= 1
+        #                     counter += 1
+        #                     cost[node2][node1] = 'INFINITE'
+        #                 cost[node1][node2] = 'INFINITE'
+        #     self.i += 1
 
-            for i in range(0, len(df)):
-                node1 = df['Dest. IP'][i].split('.')[-1]
-                node2 = df['Last hop IP'][i].split('.')[-1]
-                if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
-                    cost[node1][node2] = df['Cost'][i]
-
+        # test_counter = 0
+        for gh in self.topology_graphs[start:end + 1]:
             for i in range(0, len(nodes)):
                 node1 = nodes[i]
                 for j in range(i, len(nodes)):
                     node2 = nodes[j]
-                    if cost[node1][node2] != 'INFINITE' and cost[node2][node1] != 'INFINITE':
+                    if (node1, node2) in gh.edges or (node2, node1) in gh.edges:
                         c[node1][node2] -= 1
-            self.i += 1
-
         # with open(filename, 'w') as f:
         #     for i in range(0, len(nodes)):
         #         node1 = nodes[i]
@@ -517,30 +575,33 @@ class TopologyHelper:
             for node2 in self.node_loc.keys():
                 cost[node1][node2] = 'INFINITE'
 
-        while self.i < len(list_of_topology):
-            fn = file_name[self.i]
-            counter = 0
+        for i in range(0, len(self.topology_graphs)):
+            links_num[file_name[i]] = self.topology_graphs[i].number_of_edges()
 
-            df = list_of_topology[self.i]
-
-            for j in range(0, len(df)):
-                node1 = df['Dest. IP'][j].split('.')[-1]
-                node2 = df['Last hop IP'][j].split('.')[-1]
-                if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
-                    counter += 1
-                    cost[node1][node2] = df['Cost'][j]
-
-            counter = 0
-            for node1 in self.node_loc.keys():
-                for node2 in self.node_loc.keys():
-                    if cost[node1][node2] != 'INFINITE':
-                        if cost[node2][node1] != 'INFINITE':
-                            counter += 1
-                            links_num[fn] += 1
-                            cost[node2][node1] = 'INFINITE'
-                        cost[node1][node2] = 'INFINITE'
-
-            self.i += 1
+        # while self.i < len(list_of_topology):
+        #     fn = file_name[self.i]
+        #     counter = 0
+        #
+        #     df = list_of_topology[self.i]
+        #
+        #     for j in range(0, len(df)):
+        #         node1 = df['Dest. IP'][j].split('.')[-1]
+        #         node2 = df['Last hop IP'][j].split('.')[-1]
+        #         if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
+        #             counter += 1
+        #             cost[node1][node2] = df['Cost'][j]
+        #
+        #     counter = 0
+        #     for node1 in self.node_loc.keys():
+        #         for node2 in self.node_loc.keys():
+        #             if cost[node1][node2] != 'INFINITE':
+        #                 if cost[node2][node1] != 'INFINITE':
+        #                     counter += 1
+        #                     links_num[fn] += 1
+        #                     cost[node2][node1] = 'INFINITE'
+        #                 cost[node1][node2] = 'INFINITE'
+        #
+        #     self.i += 1
         return links_num
 
     def flow_topology(self, list_of_topology, file_name, event="no_event", plot_sarath=False, node_name=False,
