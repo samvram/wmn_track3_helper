@@ -8,7 +8,8 @@ from datetime import datetime
 import pandas as pd
 from io import StringIO
 from vpython import *
-import  networkx as nx
+import networkx as nx
+from itertools import combinations
 
 
 class TopologyHelper:
@@ -104,7 +105,7 @@ class TopologyHelper:
         scene.bind('keydown', self.change_rate)
         scene.background = color.white
         scene.width = 1900
-        scene.height = 1000
+        scene.height = 950
 
         self.laptop_color = color.yellow
         self.router_color = color.red
@@ -141,9 +142,9 @@ class TopologyHelper:
         self.time_of_events['RANDOM']['Start'] = datetime(2018, 10, 13, 17, 52)
         self.time_of_events['RANDOM']['End'] = datetime(2018, 10, 13, 18, 5)
 
-        self.time_of_events["no_event"] = dict()
-        self.time_of_events["no_event"]['Start'] = datetime(2018, 10, 13, 13, 2)
-        self.time_of_events["no_event"]['Start'] = datetime(2018, 10, 13, 18, 5)
+        self.time_of_events["all_events"] = dict()
+        self.time_of_events["all_events"]['Start'] = datetime(2018, 10, 13, 13, 2)
+        self.time_of_events["all_events"]['Start'] = datetime(2018, 10, 13, 18, 5)
 
     def get_events(self):
         """
@@ -152,23 +153,75 @@ class TopologyHelper:
         """
         return self.time_of_events
 
-    def draw_nodes(self):
+    @staticmethod
+    def get_file_list(directory_name=''):
         """
-        This function only draws the layout of the experimental setup. It also draws the plane of different floors
-        of the D3 building. This doesn't start any animation.
-        :return: It doesn't return any value
+        This function gets the list of files present in the directory passed as argument
+
+        :param directory_name: The directory from which files are to be displayed.
+        :return: File List in the directory provided.
         """
-        for node in self.node_loc.keys():
-            if node[-1] == '0':
-                sphere(pos=self.node_loc[node], radius=0.5, color=self.router_color)
-            elif node == '5':
-                sphere(pos=self.node_loc[node], radius=0.5, color=self.unique_color)
-            else:
-                sphere(pos=self.node_loc[node], radius=0.5, color=self.laptop_color)
-            label(pos=self.node_loc[node], xoffset=10, yoffset=10, line=True, box=False,
-                  text=str(node), height=36, opacity=0)
-        box(pos=vector(0, -5, -1), size=vector(80, 20, 0.01), color=color.gray(0.99))
-        box(pos=vector(0, -1, 11), size=vector(40, 10, 0.01), color=color.gray(0.99))
+        directory_path = os.getcwd()
+        if directory_name != '':
+            directory_path = os.path.join(os.getcwd(), directory_name)
+        list_of_files = []
+        for file in os.listdir(directory_path):
+            file_dict = dict()
+            file_dict['file_name'] = file
+            file_dict['file_path'] = os.path.join(directory_path, file)
+            list_of_files.append(file_dict)
+        return list_of_files
+
+    @staticmethod
+    def parse_file(file_dict):
+        """
+        This function parses all the files passed as dictionary and retuns the parsed data.
+
+        :param file_dict: The dictionary type file object, whose list is given by getFileList()
+        :return: A dictionary consisting of all tabular data of OLSRD file
+        """
+        topology_info = dict()
+        name = file_dict['file_name']
+        k = datetime.strptime(name[0:-3], '%Y-%m-%d_%H_%M_%S.%f')
+        with open(file_dict['file_path']) as f:
+            f_read = f.read()
+        tables = f_read.split('\n\n')
+        for table in tables:
+            try:
+                t_name = table.split('\n')[0].split(': ')[1]
+                table_data = StringIO(table[table.index('\n'):-1])
+                topology_info[t_name] = pd.read_csv(table_data, index_col=False, delimiter='\t')
+            except:
+                continue
+        return [topology_info, k]
+
+    def change_rate(self, evt):
+        """
+        This function is for handling the events like key pressed etc.
+
+        :param evt: the event happened
+        :return: Doesn't return any value
+        """
+
+        key_event = evt.key
+        if key_event == "up":
+            self.freq += 10
+        elif key_event == "down":
+            self.freq -= 10
+
+        if self.freq <= 0:
+            self.freq = 1
+
+        if key_event == "left":
+            self.i -= 1
+        elif key_event == "right":
+            self.i += 1
+
+        if self.i <= 0:
+            self.i = 0
+
+        if key_event == ' ':
+            self.animate = not self.animate
 
     def get_node_len_etx(self, list_of_topology, start, end):
         """
@@ -315,29 +368,6 @@ class TopologyHelper:
                 node2 = nodes[j]
                 c[node1][node2] = end - start + 1
 
-        # while self.i < len(list_of_topology):
-        #     df = list_of_topology[self.i]
-        #
-        #     for i in range(0, len(df)):
-        #         node1 = df['Dest. IP'][i].split('.')[-1]
-        #         node2 = df['Last hop IP'][i].split('.')[-1]
-        #         if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
-        #             cost[node1][node2] = df['Cost'][i]
-        #
-        #     counter = 0
-        #     for i in range(0, len(nodes)):
-        #         node1 = nodes[i]
-        #         for j in range(i, len(nodes)):
-        #             node2 = nodes[j]
-        #             if cost[node1][node2] != 'INFINITE' and cost[node1][node2] != 'INFINIT':
-        #                 if cost[node2][node1] != 'INFINITE' and cost[node2][node1] != 'INFINIT':
-        #                     c1[node1][node2] -= 1
-        #                     counter += 1
-        #                     cost[node2][node1] = 'INFINITE'
-        #                 cost[node1][node2] = 'INFINITE'
-        #     self.i += 1
-
-        # test_counter = 0
         for gh in self.topology_graphs[start:end + 1]:
             for i in range(0, len(nodes)):
                 node1 = nodes[i]
@@ -345,68 +375,152 @@ class TopologyHelper:
                     node2 = nodes[j]
                     if (node1, node2) in gh.edges or (node2, node1) in gh.edges:
                         c[node1][node2] -= 1
-        # with open(filename, 'w') as f:
-        #     for i in range(0, len(nodes)):
-        #         node1 = nodes[i]
-        #         for j in range(i, len(nodes)):
-        #             node2 = nodes[j]
-        #             if node1 != node2:
-        #                 f.write(node1+","+node2+","+str(c[node1][node2])+"\n")
         return c
 
-    @staticmethod
-    def get_file_list(directory_name=''):
+    def get_link_avg_cost(self, start, end, file_name):
         """
-        This function gets the list of files present in the directory passed as argument
+        This functions gets the average cost of links in the network at different instants of time.
 
-        :param directory_name: The directory from which files are to be displayed.
-        :return: File List in the directory provided.
+        :param start: start index of the analysis
+        :param end: end index of the analysis
+        :param file_name: a list of file names corresponding to the list of topology
+        :return: It returns a dictionary with keys as the list of files passed as file_name. The value of each key
+        denotes average cost of the links in the network at the instant of time represented by the key.
         """
-        directory_path = os.getcwd()
-        if directory_name != '':
-            directory_path = os.path.join(os.getcwd(), directory_name)
-        list_of_files = []
-        for file in os.listdir(directory_path):
-            file_dict = dict()
-            file_dict['file_name'] = file
-            file_dict['file_path'] = os.path.join(directory_path, file)
-            list_of_files.append(file_dict)
-        return list_of_files
+        self.i = 0
+        cost = dict()
+        links_num = dict.fromkeys(file_name, 0.0)
+        for node1 in self.node_loc.keys():
+            cost[node1] = dict()
+            for node2 in self.node_loc.keys():
+                cost[node1][node2] = 'INFINITE'
+        i = start
+        nodes = list(self.node_loc.keys())
+        while i < end + 1:
+            fn = file_name[i]
+            gh = self.topology_graphs[i]
+            counter = 0
+            for k in range(0, len(nodes)):
+                node1 = nodes[k]
+                for j in range(k, len(nodes)):
+                    node2 = nodes[j]
+                    if (node1, node2) in gh.edges or (node2, node1) in gh.edges:
+                        counter += float(gh.get_edge_data(node1, node2)['cost'])
+                        links_num[fn] += 1
 
-    @staticmethod
-    def parse_file(file_dict):
+            if links_num[fn] != 0:
+                links_num[fn] = counter / links_num[fn]
+            else:
+                links_num[fn] = -1
+            i += 1
+        return links_num
+
+    def get_cliques_data(self, start, end, file_name, cliques_num, max_cliques):
+
+        # counter = 0
+        i = start
+
+        print('Getting cliques from ', start, ' till ', end)
+        while i < end + 1:
+            tmp_list = []
+            fn = file_name[i]
+            # cliques_num[fn] = [100]
+
+            gh = self.topology_graphs[i]
+            # 2-cliques
+            cliques = [{i, j} for i, j in gh.edges() if i != j]
+            k = 2
+            tmp_list.append((len(cliques)))
+
+            while cliques:
+                # merge k-cliques into (k+1)-cliques
+                k += 1
+                cliques_1 = set()
+                for m, n in combinations(cliques, 2):
+                    w = m ^ n
+                    if len(w) == 2 and gh.has_edge(*w):
+                        cliques_1.add(tuple(m | w))
+                # remove duplicates
+                cliques = list(map(set, cliques_1))
+                tmp_list.append((len(cliques)))
+                if k > max_cliques.value:
+                    max_cliques.value = k
+
+            cliques_num[fn] = tmp_list
+            i += 1
+        print("\tDone from ", start, " till ", end)
+        print("\tSize of cliques_num ", len(cliques_num))
+        print("\tMax size of cliques", max_cliques.value)
+        # return cliques_num, max_cliques[0]
+
+    def get_node_links_num(self, start, end, file_name, node1, node2):
         """
-        This function parses all the files passed as dictionary and retuns the parsed data.
+        This function is use to find the etx between two nodes with respect to time.
 
-        :param file_dict: The dictionary type file object, whose list is given by getFileList()
-        :return: A dictionary consisting of all tabular data of OLSRD file
+        :param start: start index of the analysis
+        :param end: end index of the analysis
+        :param file_name: a list of file names corresponding to the list of topology
+        :param node1: The node 1 whose link cost has to be obtained with node 2
+        :param node2: The node 2 whose link cost has to be obtained with node 1
+        :return: It returns the list of cost of the link between the two nodes passed as the argument nodes.
         """
-        topology_info = dict()
-        name = file_dict['file_name']
-        k = datetime.strptime(name[0:-3], '%Y-%m-%d_%H_%M_%S.%f')
-        with open(file_dict['file_path']) as f:
-            f_read = f.read()
-        tables = f_read.split('\n\n')
-        for table in tables:
-            try:
-                t_name = table.split('\n')[0].split(': ')[1]
-                table_data = StringIO(table[table.index('\n'):-1])
-                topology_info[t_name] = pd.read_csv(table_data, index_col=False, delimiter='\t')
-            except:
-                continue
-        return [topology_info, k]
 
-    def represent_topology(self, df, fname, plot_sarath=False):
+        links_num = dict.fromkeys(file_name, 0)
+        i = start
+        while i < end+1:
+            gh = self.topology_graphs[i]
+            fn = file_name[self.i]
+            links_num[fn] = gh.get_edge_data(node1, node2, default=-1)['cost']  # to be checked
+            i += 1
+        return links_num
+
+    def get_link_nums(self, start, end, file_name):
+        """
+        This function is use to get the total number of links existing in the network at different instant of time.
+
+        :param start: The starting index of the topology graph
+        :param end: The last index of the topology graph
+        :param file_name: a list of file names corresponding to the list of topology
+        :return: It returns a dictionary with keys as as the file_name and the values denoting the total number of links
+        existing in the network at that instant of time.
+        """
+        self.i = 0
+        links_num = dict.fromkeys(file_name, 0)
+
+        for i in range(0, len(self.topology_graphs[start:end+1])):
+            links_num[file_name[i]] = self.topology_graphs[i].number_of_edges()
+
+        return links_num
+
+    def draw_nodes(self):
+        """
+        This function only draws the layout of the experimental setup. It also draws the plane of different floors
+        of the D3 building. This doesn't start any animation.
+        :return: It doesn't return any value
+        """
+        for node in self.node_loc.keys():
+            if node[-1] == '0':
+                sphere(pos=self.node_loc[node], radius=0.5, color=self.router_color)
+            elif node == '5':
+                sphere(pos=self.node_loc[node], radius=0.5, color=self.unique_color)
+            else:
+                sphere(pos=self.node_loc[node], radius=0.5, color=self.laptop_color)
+            label(pos=self.node_loc[node], xoffset=10, yoffset=10, line=True, box=False,
+                  text=str(node), height=36, opacity=0)
+        box(pos=vector(0, -5, -1), size=vector(80, 20, 0.01), color=color.gray(0.99))
+        box(pos=vector(0, -1, 11), size=vector(40, 10, 0.01), color=color.gray(0.99))
+
+    def represent_topology(self, index, f_name, plot_sarath=False):
         """
         This function is draws the topology along with all the links present in the dataframe of the topology passed.
 
-        :param df: Dataframe containing topology values
-        :param fname: the name of the file of which the dataframe is.
+        :param index: Index of the topology to display
+        :param f_name: the name of the file of which the dataframe is.
         :param plot_sarath: If true then it plots the links between sarath's node to other node
         :return: It always returns the value 0
         """
 
-        label(pos=vector(0, 0, 0), xoffset=-230, yoffset=190, line=False, box=False, text=fname)
+        label(pos=vector(0, 0, 0), xoffset=-230, yoffset=190, line=False, box=False, text=f_name)
         label(pos=vector(0, 0, 0), xoffset=200, yoffset=190, line=False, box=False,
               text="Rate: " + str(self.freq))
 
@@ -419,197 +533,25 @@ class TopologyHelper:
                 sphere(pos=self.node_loc[node], radius=0.5, color=self.laptop_color)
             label(pos=self.node_loc[node], xoffset=10, yoffset=0, line=False, box=False,
                   text=str(node), height=18)
-
-        cost = dict()
-        for node1 in self.node_loc.keys():
-            cost[node1] = dict()
-            for node2 in self.node_loc.keys():
-                cost[node1][node2] = 'INFINITE'
-
-        for i in range(0, len(df)):
-            node1 = df['Dest. IP'][i].split('.')[-1]
-            node2 = df['Last hop IP'][i].split('.')[-1]
-            if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
-                cost[node1][node2] = df['Cost'][i]
-
-        if not plot_sarath:
-            for node in self.node_loc.keys():
-                cost['5'][node] = 'INFINITE'
-                cost[node]['5'] = 'INFINITE'
-
         c = dict()
+        gh = self.topology_graphs[index]
         for node1 in self.node_loc.keys():
             c[node1] = dict()
             for node2 in self.node_loc.keys():
-                if cost[node1][node2] != 'INFINITE':
+                if (node1, node2) in gh.edges:
                     c[node1][node2] = curve(pos=[self.node_loc[node1], self.node_loc[node2]], radius=0.03)
+                    if not plot_sarath:
+                        if node1 == '5' or node2 == '5':
+                            c[node1][node2].visible = False
         return 0
 
-    def change_rate(self, evt):
-        """
-        This function is for handling the events like key pressed etc.
-
-        :param evt: the event happened
-        :return: Doesn't return any value
-        """
-
-        key_event = evt.key
-        if key_event == "up":
-            self.freq += 10
-        elif key_event == "down":
-            self.freq -= 10
-
-        if self.freq <= 0:
-            self.freq = 1
-
-        if key_event == "left":
-            self.i -= 1
-        elif key_event == "right":
-            self.i += 1
-
-        if self.i <= 0:
-            self.i = 0
-
-        if key_event == ' ':
-            self.animate = not self.animate
-
-    def get_link_avg_cost(self, list_of_topology, file_name):
-        """
-        This functions gets the average cost of links in the network at different instants of time.
-
-        :param list_of_topology: a list containing the topology information.
-        :param file_name: a list of file names corresponding to the list of topology
-        :return: It returns a dictionary with keys as the list of files passed as file_name. The value of each key
-        denotes average cost of the links in the network at the instant of time represented by the key.
-        """
-        self.i = 0
-        cost = dict()
-        links_num = dict.fromkeys(file_name, 0.0)
-        for node1 in self.node_loc.keys():
-            cost[node1] = dict()
-            for node2 in self.node_loc.keys():
-                cost[node1][node2] = 'INFINITE'
-        while self.i < len(list_of_topology):
-            fn = file_name[self.i]
-            counter = 0
-
-            df = list_of_topology[self.i]
-
-            for j in range(0, len(df)):
-                node1 = df['Dest. IP'][j].split('.')[-1]
-                node2 = df['Last hop IP'][j].split('.')[-1]
-                if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
-                    counter += 1
-                    cost[node1][node2] = df['Cost'][j]
-
-            counter = 0
-            for node1 in self.node_loc.keys():
-                for node2 in self.node_loc.keys():
-                    if cost[node1][node2] != 'INFINITE' and cost[node1][node2] != 'INFINIT':
-                        if cost[node2][node1] != 'INFINITE' and cost[node2][node1] != 'INFINIT':
-                            counter += float(cost[node2][node1])
-                            links_num[fn] += 1
-                            cost[node2][node1] = 'INFINITE'
-                        cost[node1][node2] = 'INFINITE'
-            if links_num[fn] != 0:
-                links_num[fn] = counter / links_num[fn]
-            else:
-                links_num[fn] = -1
-            self.i += 1
-        return links_num
-
-    def get_node_links_num(self, list_of_topology, file_name, nodes):
-        """
-        This function is use to find the etx between two nodes with respect to time.
-
-        :param list_of_topology: a list containing the topology information.
-        :param file_name: a list of file names corresponding to the list of topology
-        :param nodes: The list of nodes among which the link cost has to be obtained, it should contain only two
-        elements.
-        :return: It returns the list of cost of the link between the two nodes passed as the argument nodes.
-        """
-        nodes = nodes[0:1]
-        self.i = 0
-        cost = dict()
-        links_num = dict.fromkeys(file_name, 0)
-        cost[nodes[0]] = dict()
-        cost[nodes[1]] = dict()
-        cost[nodes[0]][nodes[1]] = "INFINITE"
-        cost[nodes[1]][nodes[0]] = "INFINITE"
-        while self.i < len(list_of_topology):
-            fn = file_name[self.i]
-            df = list_of_topology[self.i]
-            counter = 0
-            for j in range(0, len(df)):
-                node1 = df['Dest. IP'][j].split('.')[-1]
-                node2 = df['Last hop IP'][j].split('.')[-1]
-                if node1 in nodes and node2 in nodes:
-                    cost[node1][node2] = df['Cost'][j]
-                    counter += 1
-                    if counter == 2:
-                        if cost[nodes[0]][nodes[1]] != 'INFINITE' and cost[nodes[1]][nodes[0]] != 'INFINITE':
-                            links_num[fn] = df['Cost'][j]
-                        else:
-                            links_num[fn] = -1
-                        cost[nodes[0]][nodes[1]] = "INFINITE"
-                        cost[nodes[1]][nodes[0]] = "INFINITE"
-                        break
-            self.i += 1
-        return links_num
-
-    def get_link_nums(self, list_of_topology, file_name):
-        """
-        This function is use to get the total number of links existing in the network at different instant of time.
-
-        :param list_of_topology: a list containing the topology information.
-        :param file_name: a list of file names corresponding to the list of topology
-        :return: It returns a dictionary with keys as as the file_name and the values denoting the total number of links
-        existing in the network at that instant of time.
-        """
-        self.i = 0
-        cost = dict()
-        links_num = dict.fromkeys(file_name, 0)
-
-        for node1 in self.node_loc.keys():
-            cost[node1] = dict()
-            for node2 in self.node_loc.keys():
-                cost[node1][node2] = 'INFINITE'
-
-        for i in range(0, len(self.topology_graphs)):
-            links_num[file_name[i]] = self.topology_graphs[i].number_of_edges()
-
-        # while self.i < len(list_of_topology):
-        #     fn = file_name[self.i]
-        #     counter = 0
-        #
-        #     df = list_of_topology[self.i]
-        #
-        #     for j in range(0, len(df)):
-        #         node1 = df['Dest. IP'][j].split('.')[-1]
-        #         node2 = df['Last hop IP'][j].split('.')[-1]
-        #         if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
-        #             counter += 1
-        #             cost[node1][node2] = df['Cost'][j]
-        #
-        #     counter = 0
-        #     for node1 in self.node_loc.keys():
-        #         for node2 in self.node_loc.keys():
-        #             if cost[node1][node2] != 'INFINITE':
-        #                 if cost[node2][node1] != 'INFINITE':
-        #                     counter += 1
-        #                     links_num[fn] += 1
-        #                     cost[node2][node1] = 'INFINITE'
-        #                 cost[node1][node2] = 'INFINITE'
-        #
-        #     self.i += 1
-        return links_num
-
-    def flow_topology(self, list_of_topology, file_name, event="no_event", plot_sarath=False, node_name=False,
+    def flow_topology(self, start, end, file_name, event="all_events", plot_sarath=False, node_name=False,
                       node_to_show='ALL'):
         """
         Function to simulate the flow of topology in time.
 
-        :param list_of_topology: a list containing the topology information.
+        :param start: a starting index value of the animation
+        :param end: a last index value of the animation
         :param file_name: a list of file names corresponding to the list of topology
         :param event: The name of the event being animated like rain, tcp, group mobility, etc.
         :param plot_sarath: parameters to show connections with Sarath Sir
@@ -638,7 +580,7 @@ class TopologyHelper:
                            text=str(file_name[self.i])[11:-5])
         rate_label = label(pos=vector(0, 0, 0), xoffset=200, yoffset=190, line=False, box=False, opactiy=0,
                            text="Rate: " + str(self.freq))
-        if event != "no_event":
+        if event != "all_events":
             label(pos=vector(0, 0, 0), xoffset=0, yoffset=160, line=False, box=True,
                   text=event)
         c = dict()
@@ -656,32 +598,26 @@ class TopologyHelper:
 
         while True:
             while self.animate:
-                df = list_of_topology[self.i]
-
-                time_label.text = str(file_name[self.i])
-                rate_label.text = "Rate: " + str(self.freq)
-
-                rate(self.freq)
-
-                for i in range(0, len(df)):
-                    node1 = df['Dest. IP'][i].split('.')[-1]
-                    node2 = df['Last hop IP'][i].split('.')[-1]
-                    if node1 in self.node_loc.keys() and node2 in self.node_loc.keys():
-                        cost[node1][node2] = df['Cost'][i]
-                for node1 in self.node_loc.keys():
-                    if not plot_sarath:
-                        cost['5'][node1] = 'INFINITE'
-                        cost[node1]['5'] = 'INFINITE'
-                    for node2 in self.node_loc.keys():
-                        if cost[node1][node2] != 'INFINITE' and cost[node2][node1] != 'INFINITE':
-                            cost[node1][node2] = 'INFINITE'
-                            cost[node2][node1] = 'INFINITE'
+                for gh in self.topology_graphs[start:end+1]:
+                    if not self.animate:
+                        continue
+                    for node1 in self.node_loc.keys():
+                        if not plot_sarath:
+                            cost['5'][node1] = 'INFINITE'
+                            cost[node1]['5'] = 'INFINITE'
+                        for node2 in self.node_loc.keys():
                             if node1 in node_to_show and node2 in node_to_show:
-                                c[node1][node2].visible = True
-                        else:
-                            c[node1][node2].visible = False
-
-                self.i += 1
-                self.i %= len(list_of_topology)
-                # if self.i >= len(list_of_topology):
-                #     print('Repeating Animation')
+                                if (node1, node2) in gh.edges:
+                                    c[node1][node2].visible = True
+                                else:
+                                    c[node1][node2].visible = False
+                                if not plot_sarath:
+                                    if node1 == '5' or node2 == '5':
+                                        c[node1][node2].visible = False
+                            else:
+                                c[node1][node2].visible = False
+                    time_label.text = str(file_name[self.i])
+                    rate_label.text = "Rate: " + str(self.freq)
+                    rate(self.freq)
+                    self.i += 1
+                    self.i %= (end - start + 1)
