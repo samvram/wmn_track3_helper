@@ -417,36 +417,27 @@ class TopologyHelper:
 
     def get_cliques_data(self, start, end, file_name, cliques_num, max_cliques):
 
-        # counter = 0
         i = start
 
         print('Getting cliques from ', start, ' till ', end)
         while i < end + 1:
-            tmp_list = []
+
             fn = file_name[i]
-            # cliques_num[fn] = [100]
 
             gh = self.topology_graphs[i]
-            # 2-cliques
-            cliques = [{i, j} for i, j in gh.edges() if i != j]
-            k = 2
-            tmp_list.append((len(cliques)))
 
-            while cliques:
-                # merge k-cliques into (k+1)-cliques
-                k += 1
-                cliques_1 = set()
-                for m, n in combinations(cliques, 2):
-                    w = m ^ n
-                    if len(w) == 2 and gh.has_edge(*w):
-                        cliques_1.add(tuple(m | w))
-                # remove duplicates
-                cliques = list(map(set, cliques_1))
-                tmp_list.append((len(cliques)))
-                if k > max_cliques.value:
-                    max_cliques.value = k
+            tmp_list = [0, 0]
+            for cq in nx.enumerate_all_cliques(gh):
+                length = len(cq)
 
-            cliques_num[fn] = tmp_list
+                if length > max_cliques.value:
+                    max_cliques.value = length
+                if length > 1:
+                    try:
+                        tmp_list[length] += 1
+                    except IndexError:
+                        tmp_list.append(1)
+            cliques_num[fn] = tmp_list[2:]
             i += 1
         print("\tDone from ", start, " till ", end)
         print("\tSize of cliques_num ", len(cliques_num))

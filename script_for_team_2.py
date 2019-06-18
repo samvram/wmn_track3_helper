@@ -2,7 +2,7 @@
 from TopologyHelper import TopologyHelper
 import pickle as pk
 import multiprocessing as mp
-import numpy as np
+from TCPDumpHelper import  TCPDumpHelper
 
 
 def read_parse_raw_data(path):
@@ -235,17 +235,17 @@ def get_cliques_data(th_object, start, end, filename, path, num):
                 # print('Key: ', k)
                 # print('Value: ', v)
                 f.write(str(k.time()))
-                counter = 0
+                counter = 1
                 for vv in v:
                     f.write("," + str(vv))
                     counter += 1
-                while counter < max_clique + 1:
+                while counter < max_clique:
                     f.write(",0")
                     counter += 1
                 f.write("\n")
 
 
-def get_event_user_input(th_object):
+def get_event_user_input(th_object, filename):
     eve_times = th_object.get_events()
 
     print('From the mentioned events type the event for which you want to observe:')
@@ -263,28 +263,30 @@ def get_event_user_input(th_object):
     end_ind = -1
     if eve == "all_events":
         start_ind = 0
-        end_ind = len(fileName) - 1
+        end_ind = len(filename) - 1
         return start_ind, end_ind, eve
 
-    for i in range(0, len(fileName)):
-        if fileName[i] >= eve_times[eve]['Start'] and start_ind == -1:
+    for i in range(0, len(filename)):
+        if filename[i] >= eve_times[eve]['Start'] and start_ind == -1:
             start_ind = i
-        if fileName[i] > eve_times[eve]['End'] and end_ind == -1:
+        if filename[i] > eve_times[eve]['End'] and end_ind == -1:
             end_ind = i
             break
     return start_ind, end_ind, eve
 
 
 if __name__ == '__main__':
+    # tcp_obj = TCPDumpHelper('../10_10_10_22/tcp_dump/22_1')
+
     # fileName1, topology_info_list = read_parsed_data('parsed_data/parsed_filenames_combined_data',
     #                                                 'parsed_data/parsed_topology_info_combined_data')
 
     fileName, networkx_data = read_parsed_data('parsed_data/parsed_filenames_combined_data', 'parsed_data/networkx_data')
-
+    #
     th = TopologyHelper(networkx_data, True, freq=10)    # Create an object of the class to begin
-
-    start_index, end_index, event = get_event_user_input(th)
-
+    #
+    start_index, end_index, event = get_event_user_input(th, fileName)
+    #
     get_cliques_data(th, start_index, end_index, fileName, "extracted_data/Cliques/"+event+".csv", 12)
     # get_down_times(th, start_index, end_index, "extracted_data/Down_Time_profile/"+event+".csv")
     # th.flow_topology(start_index, end_index, fileName[start_index:end_index+1], event=event,
