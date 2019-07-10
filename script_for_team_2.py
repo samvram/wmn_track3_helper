@@ -2,6 +2,9 @@
 from TopologyHelper import TopologyHelper
 import pickle as pk
 import multiprocessing as mp
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+import numpy as np
 from TCPDumpHelper import  TCPDumpHelper
 
 
@@ -87,7 +90,8 @@ def node_link_num(th_object, start, end, file_name, node1, node2, path):
     This function gets the ETX information of the link between two nodes vs. time and write them to the file.
 
     :param th_object: The object of the TopologyHelper class
-    :param topology_info: the list containing the topology information
+    :param start: the start index of the analysis
+    :param end: the end index of the analysis
     :param file_name: the relevant list of file names.
     :param node1: one of the two node between which the link profile is to be obtained
     :param node2: one of the two node between which the link profile is to be obtained
@@ -174,7 +178,16 @@ def node_link_num_data(th_object, start, end, file_name):
 
 
 def get_total_link_num(th_object, start, end, filename, path):
+    """
+    This function gets the total number of links existing in the network at every instant of time and save it to a file.
 
+    :param th_object: The object of the TopologyHelper class
+    :param start: start index of the analysis
+    :param end: end index of the analysis
+    :param filename: the relevant list of file names.
+    :param path: The path (including the file name) of the csv file where the data will be stored.  
+    :return:
+    """
     ln = th_object.get_link_nums(start, end, filename)
     with open(path, 'w') as f:
         f.write("Time,No_Link \n")
@@ -182,9 +195,55 @@ def get_total_link_num(th_object, start, end, filename, path):
             f.write(str(k.date())+","+str(v)+"\n")
 
 
-def testing(list):
-    for i in list:
-        print(i)
+def get_degree_data(th_object, start, end, filename, path, plot_histogram=False, histo_path="untitled.csv",
+                    histo_fig_path="untitled.png"):
+
+    ln = th_object.get_degree_data(start, end, filename)
+    node_list = list(th_object.topology_graphs[0].nodes())
+    with open(path, 'w') as f:
+        f.write("Time")
+        for k in node_list:
+            f.write(","+str(k))
+        f.write("\n")
+        for k, v in ln.items():
+            f.write(str(k))
+            for n, d in v:
+                f.write(","+str(d))
+            f.write("\n")
+    if plot_histogram:
+        histo_start = 0
+        histo_end = 33
+        x = np.linspace(histo_start, histo_end, histo_end - histo_start + 1, dtype=int)
+        y = np.linspace(1, end-start+1, end-start+1, dtype=int)
+        x_meshed, y_meshed = np.meshgrid(x, y)
+        z_meshed = np.array([])
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        for k, v in ln.items():
+            y_tmp = []
+            for n, d in v:
+                y_tmp.append(d)
+            hist, bins = np.histogram(y_tmp, bins=x)
+            z_meshed = np.append(z_meshed, np.append(np.array(hist), 0))
+        z_meshed = np.reshape(z_meshed, (len(y), len(x)))
+        with open(histo_path, 'w') as f:
+            f.write("Time")
+            for item in x:
+                f.write(","+str(item))
+            f.write("\n")
+            for i in range(start, end + 1):
+                f.write(str(filename[i]))
+                for item in z_meshed[i-start]:
+                    f.write(","+str(item))
+                f.write("\n")
+
+        c = ax.pcolormesh(x_meshed, y_meshed, z_meshed, cmap='GnBu_r', vmax=15, vmin=0)
+        fig.colorbar(c, ax=ax)
+        ax.set_xlabel('Degree size')
+        ax.set_ylabel('Time')
+        ax.set_title(histo_path)
+        fig.savefig(histo_fig_path)
+        plt.show()
 
 
 def get_cliques_data(th_object, start, end, filename, path, num):
@@ -221,10 +280,6 @@ def get_cliques_data(th_object, start, end, filename, path, num):
             max_clique = i.value
 
     print('All processes are over')
-    # cliques_num = dict()
-    # max_clique = 0
-    # th_object.get_cliques_data(start, end, filename, cliques_num, max_clique)
-    # print('Starting the write operation')
     with open(path, 'w') as f:
         f.write("Time")
         for i in range(2, max_clique + 1):
@@ -232,8 +287,6 @@ def get_cliques_data(th_object, start, end, filename, path, num):
         f.write("\n")
         for cc in cliques_num:
             for k, v in cc.items():
-                # print('Key: ', k)
-                # print('Value: ', v)
                 f.write(str(k.time()))
                 counter = 1
                 for vv in v:
@@ -276,18 +329,20 @@ def get_event_user_input(th_object, filename):
 
 
 if __name__ == '__main__':
-    # tcp_obj = TCPDumpHelper('../10_10_10_22/tcp_dump/22_1')
-
-    # fileName1, topology_info_list = read_parsed_data('parsed_data/parsed_filenames_combined_data',
-    #                                                 'parsed_data/parsed_topology_info_combined_data')
+    # tcp_obj = TCPDumpHelper('../tcp_dump/N3_17')
+    # tcp_obj.export_signal_strength('10.10.10.80', 'extracted_data/Signal_Strength/src_80.csv')
+    # tcp_obj.export_inter_arrival_time('extracted_data/Inter_Arrival_Time/all.csv')
 
     fileName, networkx_data = read_parsed_data('parsed_data/parsed_filenames_combined_data', 'parsed_data/networkx_data')
     #
     th = TopologyHelper(networkx_data, True, freq=10)    # Create an object of the class to begin
     #
     start_index, end_index, event = get_event_user_input(th, fileName)
+    get_degree_data(th, start_index, end_index, fileName, "extracted_data/Degree_Distribution/"+event+".csv",
+                    plot_histogram=True, histo_path="extracted_data/Degree_Distribution/"+event+"_histo.csv",
+                    histo_fig_path="extracted_data/Degree_Distribution/figs/"+event+"_histo.png")
     #
-    get_cliques_data(th, start_index, end_index, fileName, "extracted_data/Cliques/"+event+".csv", 12)
+    # get_cliques_data(th, start_index, end_index, fileName, "extracted_data/Cliques/"+event+".csv", 12)
     # get_down_times(th, start_index, end_index, "extracted_data/Down_Time_profile/"+event+".csv")
     # th.flow_topology(start_index, end_index, fileName[start_index:end_index+1], event=event,
     #                  node_name=True)

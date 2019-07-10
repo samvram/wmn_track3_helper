@@ -415,6 +415,26 @@ class TopologyHelper:
             i += 1
         return links_num
 
+    def get_degree_data(self, start, end, file_name):
+        """
+        This function is gives the degree of each node at every instant of time from the start till the end (end point
+        included)
+
+        :param start: start index of the analysis
+        :param end: end index of the analysis
+        :param file_name: a list of file names corresponding to the list of topology
+        :return: It returns the a dictionary containing the degree data. The keys of the dictionary are the file name
+        from the 'file_name' and value is the return value of the degree of the graph.
+        """
+        i = start
+        res = dict()
+        print('Getting Degree distribution from ', start, ' till ', end)
+        while i < end + 1:
+            gh = self.topology_graphs[i]
+            res[str(file_name[i])] = gh.degree
+            i += 1
+        return res
+
     def get_cliques_data(self, start, end, file_name, cliques_num, max_cliques):
 
         i = start
