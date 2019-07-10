@@ -9,7 +9,6 @@ import pandas as pd
 from io import StringIO
 from vpython import *
 import networkx as nx
-from itertools import combinations
 
 
 class TopologyHelper:
@@ -144,7 +143,11 @@ class TopologyHelper:
 
         self.time_of_events["all_events"] = dict()
         self.time_of_events["all_events"]['Start'] = datetime(2018, 10, 13, 13, 2)
-        self.time_of_events["all_events"]['Start'] = datetime(2018, 10, 13, 18, 5)
+        self.time_of_events["all_events"]['End'] = datetime(2018, 10, 13, 18, 5)
+
+        self.time_of_events["stationary"] = dict()
+        self.time_of_events["stationary"]['Start'] = datetime(2018, 10, 13, 13, 2)
+        self.time_of_events["stationary"]['End'] = datetime(2018, 10, 13, 17, 12)
 
     def get_events(self):
         """

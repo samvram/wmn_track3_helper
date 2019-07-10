@@ -185,7 +185,7 @@ def get_total_link_num(th_object, start, end, filename, path):
     :param start: start index of the analysis
     :param end: end index of the analysis
     :param filename: the relevant list of file names.
-    :param path: The path (including the file name) of the csv file where the data will be stored.  
+    :param path: The path (including the file name) of the csv file where the data will be stored.
     :return:
     """
     ln = th_object.get_link_nums(start, end, filename)
@@ -197,6 +197,21 @@ def get_total_link_num(th_object, start, end, filename, path):
 
 def get_degree_data(th_object, start, end, filename, path, plot_histogram=False, histo_path="untitled.csv",
                     histo_fig_path="untitled.png"):
+    """
+    This function is responsible for extracting the degree information and storing the data in csv file. It can get the
+    histogram data and plot its heat map.
+
+    :param th_object: The object of the TopologyHelper class
+    :param start: start index of the analysis
+    :param end: end index of the analysis
+    :param filename: the relevant list of file names.
+    :param path: The path (including the csv file ) where the degree information will be saved.
+    :param plot_histogram: If true then the code for extracting the histogram and saving its data to the csv and the
+                            heat map to png file
+    :param histo_path: The path (including the full file name of CSV) where the histogram data will be saved
+    :param histo_fig_path: The path (including the full file name of the PNG file) where the heat map will be saved
+    :return:
+    """
 
     ln = th_object.get_degree_data(start, end, filename)
     node_list = list(th_object.topology_graphs[0].nodes())
@@ -247,6 +262,19 @@ def get_degree_data(th_object, start, end, filename, path, plot_histogram=False,
 
 
 def get_cliques_data(th_object, start, end, filename, path, num):
+    """
+    This function is responsible for extracting the cliques information from the start till the end of a particular
+    event. It uses multiprocessing to decrease the time spend on the task and colects data from different processes
+    and writes it to the csv file.
+
+    :param th_object: The object of the TopologyHelper class
+    :param start: start index of the analysis
+    :param end: end index of the analysis
+    :param filename: the relevant list of file names.
+    :param path: The path (including the file name) where the daa will be saved as per the CSV format.
+    :param num: The number of process the task will be divided into. (It is recommended to not to exceed the value 12)
+    :return:
+    """
     last = start
     delta = int((end + 1 - start) / num)
     points = []
@@ -298,7 +326,88 @@ def get_cliques_data(th_object, start, end, filename, path, num):
                 f.write("\n")
 
 
+def get_expression_for_cliques(path, save_fig_path="extracted_data/Cliques/curve_fit.png"):
+    """
+    This functions reads the data from a csv file which includes the data regarding the average number of cliques vs.
+    size of cliques for different scenarios like TCP, Random etc. Every column represents the size of the cliques and
+    row represent the situation like TCP, Random etc. It analyzes data for Stationary, Random and Group cases.
+
+    :param path: The path of the CSV file from where the data has to be read
+    :param save_fig_path: The path (including the file name) where the PNG file with the curve fit will be saved
+    :return:
+    """
+    with open(path, 'r') as f:
+        x = []
+        grp = []
+        rand = []
+        stat = []
+        for l in f:
+            if "Clique size" in l:
+                ind = l.split(',')
+                for k in ind[1:]:
+                    x.append(float(k))
+                print(ind[0], end=":\t")
+                print(x)
+            if "GROUP_MOBILITY" in l:
+                ind = l.split(',')
+                for k in ind[1:]:
+                    grp.append(float(k))
+                print(ind[0], end=":\t")
+                print(grp)
+            if "RANDOM" in l:
+                ind = l.split(',')
+                for k in ind[1:]:
+                    rand.append(float(k))
+                print(ind[0], end=":\t")
+                print(rand)
+            if "Average Stationary" in l:
+                ind = l.split(',')
+                for k in ind[1:]:
+                    stat.append(float(k))
+                print(ind[0], end=":\t")
+                print(stat)
+        round_off = 6
+        z_grp = np.polyfit(x, grp, 8).round(decimals=round_off)
+        print("Group", end="\n\t")
+        print(z_grp)
+        f_grp = np.poly1d(z_grp)
+
+        z_rand = np.polyfit(x, rand, 8).round(decimals=round_off)
+        print("Random", end="\n\t")
+        print(z_rand)
+        f_rand = np.poly1d(z_rand)
+
+        z_stat = np.polyfit(x, stat, 8).round(decimals=round_off)
+        print("Stationary", end="\n\t")
+        print(z_stat)
+        f_stat = np.poly1d(z_stat)
+
+        x_new = np.linspace(2, 14, 50)
+
+        y_new_grp = f_grp(x_new)
+        y_new_rand = f_rand(x_new)
+        y_new_stat = f_stat(x_new)
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(x, grp, 'o', x_new, y_new_grp)
+        ax.plot(x, rand, '+', x_new, y_new_rand)
+        ax.plot(x, stat, '*', x_new, y_new_stat)
+        ax.set_xlabel('Clique size')
+        ax.set_ylabel('Average no. of cliques')
+        ax.legend(("Group", "Group curve fit", "Random", "Random curve fit", "Stationary", "Stationary curve fit"))
+        fig.savefig(save_fig_path)
+        plt.show()
+
+
 def get_event_user_input(th_object, filename):
+    """
+    This function is responsible for reading the input from the user and returning the proper values of the start and
+    the end index.
+
+    :param th_object: The object of the TopologyHelper class
+    :param filename: the relevant list of file names.
+    :return: It returns the start and end index along with the event name
+    """
     eve_times = th_object.get_events()
 
     print('From the mentioned events type the event for which you want to observe:')
@@ -338,9 +447,11 @@ if __name__ == '__main__':
     th = TopologyHelper(networkx_data, True, freq=10)    # Create an object of the class to begin
     #
     start_index, end_index, event = get_event_user_input(th, fileName)
-    get_degree_data(th, start_index, end_index, fileName, "extracted_data/Degree_Distribution/"+event+".csv",
-                    plot_histogram=True, histo_path="extracted_data/Degree_Distribution/"+event+"_histo.csv",
-                    histo_fig_path="extracted_data/Degree_Distribution/figs/"+event+"_histo.png")
+    get_expression_for_cliques("extracted_data/Cliques/combined.csv")
+
+    # get_degree_data(th, start_index, end_index, fileName, "extracted_data/Degree_Distribution/"+event+".csv",
+    #                 plot_histogram=True, histo_path="extracted_data/Degree_Distribution/"+event+"_histo.csv",
+    #                 histo_fig_path="extracted_data/Degree_Distribution/figs/"+event+"_histo.png")
     #
     # get_cliques_data(th, start_index, end_index, fileName, "extracted_data/Cliques/"+event+".csv", 12)
     # get_down_times(th, start_index, end_index, "extracted_data/Down_Time_profile/"+event+".csv")
