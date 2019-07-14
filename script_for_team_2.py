@@ -5,7 +5,7 @@ import multiprocessing as mp
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
-from TCPDumpHelper import  TCPDumpHelper
+from TCPDumpHelper import TCPDumpHelper
 
 
 def read_parse_raw_data(path):
@@ -49,6 +49,7 @@ def read_parsed_data(parsed_filename_path, parsed_topology_data_path):
 
 def read_networkx_data(parsed_filename_path, networkx_path):
     """
+    This function reads the pickle parsed data and return the filename file and the extracted data.
 
     :param parsed_filename_path: The path to the parsed file name list
     :param networkx_path: The path to the list of networkx graphs
@@ -133,6 +134,69 @@ def get_down_times(th_object, start, end, path, export_all_down=False):
                             f.write(node1 + "," + node2 + "," + str(c[node1][node2]) + "\n")
                     else:
                         f.write(node1 + "," + node2 + "," + str(c[node1][node2]) + "\n")
+
+
+def get_down_profile(th_object, start, end, filename, node1, node2, path):
+    """
+    This function is responsible for extracting the link profile between two nodes
+
+    :param th_object: The object of the TopologyHelper class
+    :param start: start index of the analysis
+    :param end: end index of the analysis
+    :param filename: the relevant list of file names.
+    :param node1: One of the node of which the link is to be profiled.
+    :param node2: One of the node of which the link is to be profiled.
+    :param path: The path (including the file name) where the data will be saved as per the CSV format.
+    :return:
+    """
+    res = th_object.get_down_profile(start, end, filename, node1, node2)
+    with open(path, 'w') as f:
+        f.write("Time,Link goes up(1) or down(0)?\n")
+        for k, v in res.items():
+            f.write(str(k)+","+str(v)+"\n")
+
+
+def get_all_down_profile(th_object, start, end, filename, path):
+    """
+    This function extracts the link profile of various types of link
+
+    :param th_object: The object of the TopologyHelper class
+    :param start: start index of the analysis
+    :param end: end index of the analysis
+    :param file_name: the relevant list of file names.
+    :param path: The path of the folder where the various file will be saved
+    :return:
+    """
+    get_down_profile(th_object, start, end, filename, '20', '10', path+"_20_10.csv")
+    get_down_profile(th_object, start, end, filename, '20', '30', path+"_20_30.csv")
+    get_down_profile(th_object, start, end, filename, '22', '11', path+"_22_11.csv")
+    get_down_profile(th_object, start, end, filename, '22', '31', path+"_22_31.csv")
+    get_down_profile(th_object, start, end, filename, '22', '10', path+"_22_10.csv")
+    get_down_profile(th_object, start, end, filename, '20', '31', path+"_20_31.csv")
+    get_down_profile(th_object, start, end, filename, '20', '70', path+"_20_70.csv")
+    get_down_profile(th_object, start, end, filename, '20', '90', path+"_20_90.csv")
+    get_down_profile(th_object, start, end, filename, '22', '71', path+"_22_71.csv")
+    get_down_profile(th_object, start, end, filename, '22', '91', path+"_22_91.csv")
+    get_down_profile(th_object, start, end, filename, '22', '70', path+"_22_70.csv")
+    get_down_profile(th_object, start, end, filename, '20', '91', path+"_20_91.csv")
+
+
+def get_planar_data(th_object, start, end, filename, path):
+    """
+    This function gets the planarity data and stores it to the csv file.
+
+    :param th_object: The object of the TopologyHelper class
+    :param start: start index of the analysis
+    :param end: end index of the analysis
+    :param filename: the relevant list of file names.
+    :param path: The path of the file to which the data will be written
+    :return:
+    """
+    res = th_object.get_planarity(start, end, filename)
+    with open(path, 'w') as f:
+        f.write("Time, Planar(1) or not (0)\n")
+        for k, v in res.items():
+            f.write(str(k)+","+str(v)+"\n")
 
 
 def node_route_data(th_object, topology_info, file_name):
@@ -264,14 +328,14 @@ def get_degree_data(th_object, start, end, filename, path, plot_histogram=False,
 def get_cliques_data(th_object, start, end, filename, path, num):
     """
     This function is responsible for extracting the cliques information from the start till the end of a particular
-    event. It uses multiprocessing to decrease the time spend on the task and colects data from different processes
+    event. It uses multiprocessing to decrease the time spend on the task and collects data from different processes
     and writes it to the csv file.
 
     :param th_object: The object of the TopologyHelper class
     :param start: start index of the analysis
     :param end: end index of the analysis
     :param filename: the relevant list of file names.
-    :param path: The path (including the file name) where the daa will be saved as per the CSV format.
+    :param path: The path (including the file name) where the data will be saved as per the CSV format.
     :param num: The number of process the task will be divided into. (It is recommended to not to exceed the value 12)
     :return:
     """
@@ -438,17 +502,22 @@ def get_event_user_input(th_object, filename):
 
 
 if __name__ == '__main__':
-    # tcp_obj = TCPDumpHelper('../tcp_dump/N3_17')
+    tcp_obj = TCPDumpHelper('../tcp_dump/N3_17')
     # tcp_obj.export_signal_strength('10.10.10.80', 'extracted_data/Signal_Strength/src_80.csv')
+    # print('Completed')
     # tcp_obj.export_inter_arrival_time('extracted_data/Inter_Arrival_Time/all.csv')
 
     fileName, networkx_data = read_parsed_data('parsed_data/parsed_filenames_combined_data', 'parsed_data/networkx_data')
-    #
-    th = TopologyHelper(networkx_data, True, freq=10)    # Create an object of the class to begin
-    #
-    start_index, end_index, event = get_event_user_input(th, fileName)
-    get_expression_for_cliques("extracted_data/Cliques/combined.csv")
 
+    th = TopologyHelper(networkx_data, True, freq=10)    # Create an object of the class to begin
+
+    start_index, end_index, event = get_event_user_input(th, fileName)
+
+    get_planar_data(th, start_index, end_index, fileName, "extracted_data/Planarity/"+event+".csv")
+
+    # get_all_down_profile(th, start_index, end_index, fileName, "extracted_data/Down_Time_profile2/"+event)
+
+    # get_expression_for_cliques("extracted_data/Cliques/combined.csv")
     # get_degree_data(th, start_index, end_index, fileName, "extracted_data/Degree_Distribution/"+event+".csv",
     #                 plot_histogram=True, histo_path="extracted_data/Degree_Distribution/"+event+"_histo.csv",
     #                 histo_fig_path="extracted_data/Degree_Distribution/figs/"+event+"_histo.png")

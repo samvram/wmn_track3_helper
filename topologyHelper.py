@@ -346,6 +346,56 @@ class TopologyHelper:
             self.i += 1
         return route_data
 
+    def get_planarity(self, start, end, file_name):
+        """
+        This function returns if the network is planar or not, from the start till the end index.
+        :param start: start index of the analysis
+        :param end: end index of the analysis
+        :param file_name: The list of filename
+        :return: It returns a dictionary whose keys are the file names and the value is if the graph is planar or not.
+        """
+        i = start
+        planarity = dict()
+        while i < end + 1:
+            fn = file_name[i]
+            planarity[fn] = int(nx.check_planarity(self.topology_graphs[i])[0])
+            if planarity[fn]:
+                print(fn)
+            i += 1
+        return planarity
+
+    def get_down_profile(self, start, end, file_name, node1, node2):
+        """
+        This function gets the link down profile of the link between node1 and node2.
+
+        :param start: start index of the analysis
+        :param end: end index of the analysis
+        :param file_name: The list of filename
+        :param node1: One of the node of which the link is checked.
+        :param node2: The other of the node of which the link is checked.
+        :return: It returns a dictionary. The dictionary key is the file name and the value is the state of the link.
+                The state value is 1 if the link goes up at that instant of time else it is zero
+        """
+        i = start
+        state = 0   # represents if the link is up(1) or down(0). Initial state is assumed to be down
+        down_profile = dict()
+        down_profile[file_name[start]] = state
+        while i < end + 1:
+            gh = self.topology_graphs[i]
+            fn = file_name[i]
+            if state:
+                # The state is up already, so we should look when it goes down.
+                if not ((node1, node2) in gh.edges or (node2, node1) in gh.edges):
+                    state = 0
+                    down_profile[fn] = state
+            else:
+                # The state is down already, so we should look when it goes up.
+                if (node1, node2) in gh.edges or (node2, node1) in gh.edges:
+                    state = 1
+                    down_profile[fn] = state
+            i += 1
+        return down_profile
+
     def get_down_time(self, start, end):
         """
         This function gets the link down time of ALL the links in the list_of_topology topology data.
@@ -439,9 +489,18 @@ class TopologyHelper:
         return res
 
     def get_cliques_data(self, start, end, file_name, cliques_num, max_cliques):
-
+        """
+        This function returns the clique data from the start till the end of the list of network topology.
+        :param start: start index of the analysis
+        :param end: end index of the analysis
+        :param file_name: a list of file names corresponding to the list of topology
+        :param cliques_num: The dictionary to which the result will be written to. Each value of the dictionary will be
+                            a list of cliques with the first element representing the number of 2 cliques, second
+                            element containing the number 3 cliques and so on.
+        :param max_cliques: To this the value of max size of the clique will be written
+        :return:
+        """
         i = start
-
         print('Getting cliques from ', start, ' till ', end)
         while i < end + 1:
 
@@ -465,7 +524,6 @@ class TopologyHelper:
         print("\tDone from ", start, " till ", end)
         print("\tSize of cliques_num ", len(cliques_num))
         print("\tMax size of cliques", max_cliques.value)
-        # return cliques_num, max_cliques[0]
 
     def get_node_links_num(self, start, end, file_name, node1, node2):
         """

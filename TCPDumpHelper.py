@@ -23,10 +23,27 @@ class TCPDumpHelper:
         self.Mac_IP_Map['00:80:48:6b:fd:17'] = "10.10.10.100"
         self.Mac_IP_Map['10:08:b1:d1:f6:b3'] = "10.10.10.102"
 
+        self.IP_Mac_Map = dict()
+        self.IP_Mac_Map['10.10.10.5'] = "e8:4e:06:24:e8:e4"
+        self.IP_Mac_Map['10.10.10.40'] = "bc:30:7e:07:97:ce"
+        self.IP_Mac_Map['10.10.10.50'] = "00:1b:b1:b1:62:56"
+        self.IP_Mac_Map['10.10.10.70'] = "00:80:48:6b:fd:16"
+        self.IP_Mac_Map['10.10.10.71'] = "40:b8:9a:f7:42:dd"
+        self.IP_Mac_Map['10.10.10.80'] = "00:0b:6b:02:0c:2e"
+        self.IP_Mac_Map['10.10.10.81'] = "70:77:81:31:c0:3f"
+        self.IP_Mac_Map['10.10.10.82'] = "ac:d1:b8:cf:a4:e1"
+        self.IP_Mac_Map['10.10.10.90'] = "00:1b:b1:b1:62:4a"
+        self.IP_Mac_Map['10.10.10.91'] = "60:6d:c7:4b:a7:f1"
+        self.IP_Mac_Map['10.10.10.92'] = "d8:5d:e2:ab:e2:5f"
+        self.IP_Mac_Map['10.10.10.100'] = "00:80:48:6b:fd:17"
+        self.IP_Mac_Map['10.10.10.102'] = "10:08:b1:d1:f6:b3"
+        self.IP_Mac_Map['all'] = "ff:ff:ff:ff:ff:ff"
+
     def export_signal_strength(self, src_ip, save_path):
         is_all = src_ip == 'all'
         with open(save_path, 'w') as f:
-            f.write("Src IP,Dst IP,Signal Strength, Time of the day, Raw time (seconds), Micros\n")
+            f.write("Src IP,Transmit Mac, Transmit IP, Dst IP,"
+                    "Signal Strength, Time of the day, Raw time (seconds), Micros\n")
             for packet in sp.PcapReader(self.path):
                 dels_sec = packet.time - self.exp_day
                 dels_mins = dels_sec / 60
@@ -37,12 +54,12 @@ class TCPDumpHelper:
                 hours = int(dels_mins / 60)
                 timestamp = dt.datetime(year=2018, month=10, day=13, hour=hours, minute=mins,
                                         second=int(secs), microsecond=micro)
-                if packet.haslayer(sp.IP):
-                    if packet.haslayer(sp.RadioTap):
-                        if packet[sp.IP].fields['src'] == src_ip or is_all:
-                            f.write(packet[sp.IP].fields['src'] + "," + packet[sp.IP].fields['dst'] + ","
-                                    + str(packet[sp.RadioTap].fields['dBm_AntSignal']) + "," + str(timestamp) +
-                                    "," + str(packet.time) + "," + str(int(micro)) + "\n")
+                if packet.haslayer(sp.IP) and packet.haslayer(sp.RadioTap):
+                    if packet[sp.Dot11].fields['addr2'] == self.IP_Mac_Map[src_ip] or is_all:
+                        f.write(packet[sp.IP].fields['src'] + "," + packet[sp.Dot11].fields['addr2']
+                                + "," + src_ip + "," + packet[sp.IP].fields['dst'] + ","
+                                + str(packet[sp.RadioTap].fields['dBm_AntSignal']) + "," + str(timestamp) +
+                                "," + str(packet.time) + "," + str(int(micro)) + "\n")
 
     def export_inter_arrival_time(self, save_path):
         old = 0
