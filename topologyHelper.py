@@ -51,18 +51,18 @@ class TopologyHelper:
                          '100': vector(28, 2 - 9, 0),
                          '101': vector(32, 2 - 9, 0),
                          '102': vector(30, -2 - 9, 0),
-                         '30': vector(-17, 2 - 4.5, 12),
-                         '31': vector(-13, 2 - 4.5, 12),
-                         '32': vector(-15, -2 - 4.5, 12),
-                         '60': vector(-2, 2, 12),
-                         '61': vector(2, 2, 12),
-                         '62': vector(4, 2, 12),
-                         '63': vector(0, -2, 12),
-                         '90': vector(13, 2 - 4.5, 12),
-                         '91': vector(17, 2 - 4.5, 12),
-                         '92': vector(15, -2 - 4.5, 12),
+                         '30': vector(-17, 2 - 5, 12),
+                         '31': vector(-13, 2 - 5, 12),
+                         '32': vector(-15, -2 - 5, 12),
+                         '60': vector(0, 2, 12),
+                         '61': vector(4, 2, 12),
+                         '62': vector(6, 2, 12),
+                         '63': vector(2, -2, 12),
+                         '90': vector(13, 2 - 5, 12),
+                         '91': vector(17, 2 - 5, 12),
+                         '92': vector(15, -2 - 5, 12),
                          '110': vector(-32, -2 - 9, 0),
-                         '5': vector(15, 0 - 4.5, 3)}
+                         '5': vector(15, 0 - 5, 3)}
 
         if is_networkx:
             # The passed data to the list_of_topolgy is list of networkx graphs
@@ -348,7 +348,9 @@ class TopologyHelper:
 
     def get_planarity(self, start, end, file_name):
         """
-        This function returns if the network is planar or not, from the start till the end index.
+        This function returns if the network is planar or not, from the start till the end index. It prints out the
+        time instant, meshedness and the number of edges of all the graphs which are planar
+
         :param start: start index of the analysis
         :param end: end index of the analysis
         :param file_name: The list of filename
@@ -356,11 +358,14 @@ class TopologyHelper:
         """
         i = start
         planarity = dict()
+        vertices = len(list(self.node_loc.keys()))
         while i < end + 1:
             fn = file_name[i]
             planarity[fn] = int(nx.check_planarity(self.topology_graphs[i])[0])
             if planarity[fn]:
-                print(fn)
+                edges = self.topology_graphs[i].number_of_edges()
+                meshedness = (edges - vertices + 1)/(2*vertices - 5)
+                print(str(fn)+"\t\t"+str(meshedness)+"\t\t\t"+str(edges))
             i += 1
         return planarity
 
@@ -556,12 +561,11 @@ class TopologyHelper:
         :return: It returns a dictionary with keys as as the file_name and the values denoting the total number of links
         existing in the network at that instant of time.
         """
-        self.i = 0
-        links_num = dict.fromkeys(file_name, 0)
-
-        for i in range(0, len(self.topology_graphs[start:end+1])):
+        i = start
+        links_num = dict()
+        while i < end + 1:
             links_num[file_name[i]] = self.topology_graphs[i].number_of_edges()
-
+            i += 1
         return links_num
 
     def draw_nodes(self):

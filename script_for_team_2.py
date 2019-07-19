@@ -254,13 +254,13 @@ def get_total_link_num(th_object, start, end, filename, path):
     """
     ln = th_object.get_link_nums(start, end, filename)
     with open(path, 'w') as f:
-        f.write("Time,No_Link \n")
+        f.write("Time,No_Link\n")
         for k, v in ln.items():
-            f.write(str(k.date())+","+str(v)+"\n")
+            f.write(str(k)+","+str(v)+"\n")
 
 
-def get_degree_data(th_object, start, end, filename, path, plot_histogram=False, histo_path="untitled.csv",
-                    histo_fig_path="untitled.png"):
+def get_degree_data(th_object, start, end, filename, event_name, path, plot_histogram=False, histo_path="/",
+                    fig_path="/"):
     """
     This function is responsible for extracting the degree information and storing the data in csv file. It can get the
     histogram data and plot its heat map.
@@ -269,26 +269,53 @@ def get_degree_data(th_object, start, end, filename, path, plot_histogram=False,
     :param start: start index of the analysis
     :param end: end index of the analysis
     :param filename: the relevant list of file names.
+    :param event_name: The name of the event being analyzed
     :param path: The path (including the csv file ) where the degree information will be saved.
     :param plot_histogram: If true then the code for extracting the histogram and saving its data to the csv and the
                             heat map to png file
-    :param histo_path: The path (including the full file name of CSV) where the histogram data will be saved
-    :param histo_fig_path: The path (including the full file name of the PNG file) where the heat map will be saved
+    :param histo_path: The path (NOT including the file name of CSV) where the histogram data will be saved
+    :param fig_path: The path (NOT including the file name ) where the figures will be saved
     :return:
     """
 
     ln = th_object.get_degree_data(start, end, filename)
     node_list = list(th_object.topology_graphs[0].nodes())
+    averaged_data = []
     with open(path, 'w') as f:
+
         f.write("Time")
         for k in node_list:
             f.write(","+str(k))
-        f.write("\n")
+        f.write(",Average Degree size\n")
         for k, v in ln.items():
-            f.write(str(k))
+            sum_av = 0
+            count = 0
+            f.write(k)
             for n, d in v:
                 f.write(","+str(d))
-            f.write("\n")
+                sum_av += d
+                count += 1
+            averaged_data.append(sum_av/count)
+            f.write(","+str(averaged_data[-1])+"\n")
+    av_fig = plt.figure()
+    ax_av_fig = av_fig.add_subplot(111)
+    averaged = np.ones((len(averaged_data), 1))*np.average(averaged_data)
+    ax_av_fig.plot(averaged_data)
+    ax_av_fig.plot(averaged)
+    ax_av_fig.set_xlabel('Time')
+    ax_av_fig.set_ylabel('Average degree size')
+    ax_av_fig.set_title('Average degree size vs. time for '+event_name)
+    av_fig.savefig(fig_path+event_name+"_av_deg_size.png")
+
+    av_bins = np.linspace(0, max(averaged_data)+1, int((max(averaged_data)+1)/0.2))
+    av_fig_histo = plt.figure()
+    ax_av_histo = av_fig_histo.add_subplot(111)
+    ax_av_histo.hist(averaged_data, bins=av_bins, rwidth=0.8, density=False)
+    ax_av_histo.set_xlabel("Average degree size")
+    ax_av_histo.set_ylabel("Count of occurrence")
+    ax_av_histo.set_title("Histogram of average degree size for "+event_name)
+    av_fig_histo.savefig(fig_path + event_name + "_av_deg_size_histo.png")
+
     if plot_histogram:
         histo_start = 0
         histo_end = 33
@@ -305,7 +332,7 @@ def get_degree_data(th_object, start, end, filename, path, plot_histogram=False,
             hist, bins = np.histogram(y_tmp, bins=x)
             z_meshed = np.append(z_meshed, np.append(np.array(hist), 0))
         z_meshed = np.reshape(z_meshed, (len(y), len(x)))
-        with open(histo_path, 'w') as f:
+        with open(histo_path+event_name+"_histo.csv", 'w') as f:
             f.write("Time")
             for item in x:
                 f.write(","+str(item))
@@ -316,13 +343,13 @@ def get_degree_data(th_object, start, end, filename, path, plot_histogram=False,
                     f.write(","+str(item))
                 f.write("\n")
 
-        c = ax.pcolormesh(x_meshed, y_meshed, z_meshed, cmap='GnBu_r', vmax=15, vmin=0)
+        c = ax.pcolormesh(x_meshed, y_meshed, z_meshed, cmap='GnBu_r', vmax=16, vmin=0)
         fig.colorbar(c, ax=ax)
         ax.set_xlabel('Degree size')
         ax.set_ylabel('Time')
         ax.set_title(histo_path)
-        fig.savefig(histo_fig_path)
-        plt.show()
+        fig.savefig(fig_path+event_name+"_histo.png")
+    plt.show()
 
 
 def get_cliques_data(th_object, start, end, filename, path, num):
@@ -430,7 +457,7 @@ def get_expression_for_cliques(path, save_fig_path="extracted_data/Cliques/curve
                     stat.append(float(k))
                 print(ind[0], end=":\t")
                 print(stat)
-        round_off = 6
+        round_off = 8
         z_grp = np.polyfit(x, grp, 8).round(decimals=round_off)
         print("Group", end="\n\t")
         print(z_grp)
@@ -501,11 +528,35 @@ def get_event_user_input(th_object, filename):
     return start_ind, end_ind, eve
 
 
+def geographical_heat_map(th_object):
+    x_start = -40
+    x_end = 40
+    y_start = -20
+    y_end = 20
+    x = np.linspace(x_start, x_end, x_end - x_start + 1)
+    y = np.linspace(y_start, y_end, y_end - y_start + 1)
+    x_meshed, y_meshed = np.meshgrid(x, y)
+    z_meshed = np.zeros(y_meshed.shape)
+
+    fig = plt.figure()
+
+    ax = fig.add_subplot(111)
+    co_bar = ax.pcolormesh(x_meshed, y_meshed, z_meshed, cmap='cool')
+    fig.colorbar(co_bar, ax=ax)
+    for k, v in th_object.node_loc.items():
+        if v.z >= 12:
+            c = 'red'
+        else:
+            c = 'blue'
+        ax.scatter(v.x, v.y, color=c)
+        ax.annotate(k, (v.x, v.y), color='white', textcoords="offset points", xytext=(2, 2))
+    plt.show()
+
+
 if __name__ == '__main__':
-    tcp_obj = TCPDumpHelper('../tcp_dump/N3_17')
+    # tcp_obj = TCPDumpHelper('../tcp_dump/N3_17')
+    # tcp_obj.export_arrival_rate('extracted_data/Arrival_rate/all2.csv')
     # tcp_obj.export_signal_strength('10.10.10.80', 'extracted_data/Signal_Strength/src_80.csv')
-    # print('Completed')
-    # tcp_obj.export_inter_arrival_time('extracted_data/Inter_Arrival_Time/all.csv')
 
     fileName, networkx_data = read_parsed_data('parsed_data/parsed_filenames_combined_data', 'parsed_data/networkx_data')
 
@@ -513,14 +564,15 @@ if __name__ == '__main__':
 
     start_index, end_index, event = get_event_user_input(th, fileName)
 
-    get_planar_data(th, start_index, end_index, fileName, "extracted_data/Planarity/"+event+".csv")
+    # get_planar_data(th, start_index, end_index, fileName, "extracted_data/Planarity/"+event+".csv")
 
     # get_all_down_profile(th, start_index, end_index, fileName, "extracted_data/Down_Time_profile2/"+event)
 
     # get_expression_for_cliques("extracted_data/Cliques/combined.csv")
-    # get_degree_data(th, start_index, end_index, fileName, "extracted_data/Degree_Distribution/"+event+".csv",
-    #                 plot_histogram=True, histo_path="extracted_data/Degree_Distribution/"+event+"_histo.csv",
-    #                 histo_fig_path="extracted_data/Degree_Distribution/figs/"+event+"_histo.png")
+    geographical_heat_map(th)
+    # get_degree_data(th, start_index, end_index, fileName, event, "extracted_data/Degree_Distribution/"+event+".csv",
+    #                 plot_histogram=True, histo_path="extracted_data/Degree_Distribution/",
+    #                 fig_path="extracted_data/Degree_Distribution/figs/")
     #
     # get_cliques_data(th, start_index, end_index, fileName, "extracted_data/Cliques/"+event+".csv", 12)
     # get_down_times(th, start_index, end_index, "extracted_data/Down_Time_profile/"+event+".csv")

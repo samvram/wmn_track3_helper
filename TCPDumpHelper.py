@@ -80,3 +80,30 @@ class TCPDumpHelper:
                 delta = delta * 1000
                 old = packet.time
                 f.write(str(delta)+","+str(timestamp)+","+str(packet.time) + "," + str(int(micro)) + "\n")
+
+    def export_arrival_rate(self, save_path):
+        count = 0
+        old_time = 0
+        with open(save_path, 'w') as f:
+            f.write("Start Time,Rate\n")
+            for packet in sp.PcapReader(self.path):
+                dels_sec = packet.time - self.exp_day
+                dels_mins = dels_sec / 60
+                secs = dels_sec % 60
+                micro = int((secs - int(secs)) * 10 ** 6)
+                secs = int(secs)
+                mins = int(dels_mins % 60)
+                hours = int(dels_mins / 60)
+                timestamp = dt.datetime(year=2018, month=10, day=13, hour=hours, minute=mins,
+                                        second=secs, microsecond=micro)
+                if old_time == 0:
+                    old_time = timestamp
+                    count = 1
+                    continue
+                else:
+                    if (timestamp - old_time) > dt.timedelta(seconds=1):
+                        f.write(str(old_time)+","+str(count)+"\n")
+                        old_time = timestamp
+                        count = 1
+                    else:
+                        count += 1
