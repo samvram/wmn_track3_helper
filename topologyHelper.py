@@ -346,11 +346,15 @@ class TopologyHelper:
             self.i += 1
         return route_data
 
-    def get_planarity(self, start, end, file_name):
+    def get_planarity(self, start, end, file_name, remove_planar_nodes=10):
         """
         This function returns if the network is planar or not, from the start till the end index. It prints out the
         time instant, meshedness and the number of edges of all the graphs which are planar
 
+        :param remove_planar_nodes: If the analysis is to be done by removing all the upper floor nodes then pass value
+                                    1. If the analysis is to be done by removing all the lower floor nodes then pass
+                                    value 0. If the analysis is to be done by NOT removing any nodes then pass
+                                    any value greater than 1.
         :param start: start index of the analysis
         :param end: end index of the analysis
         :param file_name: The list of filename
@@ -359,13 +363,30 @@ class TopologyHelper:
         i = start
         planarity = dict()
         vertices = len(list(self.node_loc.keys()))
+        graph_copy = self.topology_graphs.copy()
+        upper_nodes = ['30', '31', '32', '60', '61', '62', '63', '90', '91', '92']
+        lower_nodes = ['10', '11', '12', '20', '21', '22', '40', '41', '42', '50', '51', '52', '54', '70', '71', '72',
+                       '80', '81', '82', '100', '101', '102', '5', '110']
+        if remove_planar_nodes is 1:
+            remove_nodes = upper_nodes
+            vertices = vertices - len(upper_nodes)
+            print("Removing upper nodes")
+        elif remove_planar_nodes is 0:
+            remove_nodes = lower_nodes
+            vertices = vertices - len(lower_nodes)
+            print("Removing lower nodes")
+        else:
+            remove_nodes = []
+            print("Not removing any nodes")
         while i < end + 1:
             fn = file_name[i]
-            planarity[fn] = int(nx.check_planarity(self.topology_graphs[i])[0])
+            for up in remove_nodes:
+                graph_copy[i].remove_node(up)
+            planarity[fn] = int(nx.check_planarity(graph_copy[i])[0])
             if planarity[fn]:
                 edges = self.topology_graphs[i].number_of_edges()
                 meshedness = (edges - vertices + 1)/(2*vertices - 5)
-                print(str(fn)+"\t\t"+str(meshedness)+"\t\t\t"+str(edges))
+                print(str(fn)+","+str(meshedness)+","+str(edges))
             i += 1
         return planarity
 

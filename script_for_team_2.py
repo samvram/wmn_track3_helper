@@ -192,7 +192,7 @@ def get_planar_data(th_object, start, end, filename, path):
     :param path: The path of the file to which the data will be written
     :return:
     """
-    res = th_object.get_planarity(start, end, filename)
+    res = th_object.get_planarity(start, end, filename, remove_planar_nodes=0)
     with open(path, 'w') as f:
         f.write("Time, Planar(1) or not (0)\n")
         for k, v in res.items():
@@ -281,23 +281,29 @@ def get_degree_data(th_object, start, end, filename, event_name, path, plot_hist
     ln = th_object.get_degree_data(start, end, filename)
     node_list = list(th_object.topology_graphs[0].nodes())
     averaged_data = []
+    geo_dict = dict.fromkeys(th_object.node_loc.keys(), 0.0)
+    geo_count = 0
     with open(path, 'w') as f:
-
         f.write("Time")
         for k in node_list:
             f.write(","+str(k))
         f.write(",Average Degree size\n")
         for k, v in ln.items():
+            geo_count += 1
             sum_av = 0
             count = 0
             f.write(k)
             for n, d in v:
+                geo_dict[n] += d
                 f.write(","+str(d))
                 sum_av += d
                 count += 1
             averaged_data.append(sum_av/count)
             f.write(","+str(averaged_data[-1])+"\n")
     av_fig = plt.figure()
+    for k, v in geo_dict.items():
+        geo_dict[k] = v/geo_count
+
     ax_av_fig = av_fig.add_subplot(111)
     averaged = np.ones((len(averaged_data), 1))*np.average(averaged_data)
     ax_av_fig.plot(averaged_data)
@@ -315,6 +321,8 @@ def get_degree_data(th_object, start, end, filename, event_name, path, plot_hist
     ax_av_histo.set_ylabel("Count of occurrence")
     ax_av_histo.set_title("Histogram of average degree size for "+event_name)
     av_fig_histo.savefig(fig_path + event_name + "_av_deg_size_histo.png")
+
+
 
     if plot_histogram:
         histo_start = 0
@@ -347,8 +355,10 @@ def get_degree_data(th_object, start, end, filename, event_name, path, plot_hist
         fig.colorbar(c, ax=ax)
         ax.set_xlabel('Degree size')
         ax.set_ylabel('Time')
-        ax.set_title(histo_path)
+        ax.set_title(histo_path+" "+event_name)
         fig.savefig(fig_path+event_name+"_histo.png")
+    geographical_heat_map(th_object, geo_dict, "average degree size for " + event_name,
+                          fig_path + "geographical_degree_dist_" + event_name + ".png")
     plt.show()
 
 
@@ -528,28 +538,43 @@ def get_event_user_input(th_object, filename):
     return start_ind, end_ind, eve
 
 
-def geographical_heat_map(th_object):
+def geographical_heat_map(th_object, nodes_n_val_dict, event_name, path, r_min=0, r_max=13):
     x_start = -40
     x_end = 40
-    y_start = -20
-    y_end = 20
-    x = np.linspace(x_start, x_end, x_end - x_start + 1)
-    y = np.linspace(y_start, y_end, y_end - y_start + 1)
+    y_start = -15
+    y_end = 15
+    step_size = 0.05
+    x = np.arange(x_start, x_end, step_size)
+    y = np.arange(y_start, y_end, step_size)
     x_meshed, y_meshed = np.meshgrid(x, y)
     z_meshed = np.zeros(y_meshed.shape)
+    for k, val in nodes_n_val_dict.items():
+        v = th_object.node_loc[k]
+        x_mean = int(v.y*1/step_size+len(y)/2)
+        y_mean = int(v.x*1/step_size+len(x)/2)
+        sigma_sq = 60
+        dist_range = int(5/step_size)
+        for x_inst in range(x_mean - dist_range, x_mean + dist_range):
+            for y_inst in range(y_mean - dist_range, y_mean + dist_range):
+                new_val = val * np.exp(-((x_inst-x_mean)**2+(y_inst-y_mean)**2)/(2*sigma_sq))
+                if new_val > z_meshed[x_inst][y_inst]:
+                    z_meshed[x_inst][y_inst] = new_val
 
-    fig = plt.figure()
-
+    fig = plt.figure(num=None, figsize=(16, 9))
     ax = fig.add_subplot(111)
-    co_bar = ax.pcolormesh(x_meshed, y_meshed, z_meshed, cmap='cool')
-    fig.colorbar(co_bar, ax=ax)
+    co_bar = ax.pcolormesh(x_meshed, y_meshed, z_meshed, cmap='RdBu_r', vmin=r_min, vmax=r_max)
+    cbar = fig.colorbar(co_bar, ax=ax)
+    cbar.ax.tick_params(labelsize=18)
     for k, v in th_object.node_loc.items():
         if v.z >= 12:
             c = 'red'
         else:
-            c = 'blue'
-        ax.scatter(v.x, v.y, color=c)
-        ax.annotate(k, (v.x, v.y), color='white', textcoords="offset points", xytext=(2, 2))
+            c = 'black'
+        if k not in nodes_n_val_dict.keys():
+            ax.scatter(v.x, v.y, color=c)
+        ax.annotate(k, (v.x, v.y), color=c, textcoords="offset points", xytext=(2, 2), fontsize=12)
+    ax.set_title("Geographical distribution of "+event_name, fontsize=18)
+    fig.savefig(path)
     plt.show()
 
 
@@ -558,21 +583,22 @@ if __name__ == '__main__':
     # tcp_obj.export_arrival_rate('extracted_data/Arrival_rate/all2.csv')
     # tcp_obj.export_signal_strength('10.10.10.80', 'extracted_data/Signal_Strength/src_80.csv')
 
-    fileName, networkx_data = read_parsed_data('parsed_data/parsed_filenames_combined_data', 'parsed_data/networkx_data')
+    fileName, networkx_data = read_parsed_data('parsed_data/parsed_filenames_combined_data',
+                                               'parsed_data/networkx_data')
 
     th = TopologyHelper(networkx_data, True, freq=10)    # Create an object of the class to begin
 
     start_index, end_index, event = get_event_user_input(th, fileName)
 
-    # get_planar_data(th, start_index, end_index, fileName, "extracted_data/Planarity/"+event+".csv")
+    # get_planar_data(th, start_index, end_index, fileName, "extracted_data/Planarity/Upper_floor_only/"+event+".csv")
 
     # get_all_down_profile(th, start_index, end_index, fileName, "extracted_data/Down_Time_profile2/"+event)
 
     # get_expression_for_cliques("extracted_data/Cliques/combined.csv")
-    geographical_heat_map(th)
-    # get_degree_data(th, start_index, end_index, fileName, event, "extracted_data/Degree_Distribution/"+event+".csv",
-    #                 plot_histogram=True, histo_path="extracted_data/Degree_Distribution/",
-    #                 fig_path="extracted_data/Degree_Distribution/figs/")
+
+    get_degree_data(th, start_index, end_index, fileName, event, "extracted_data/Degree_Distribution/"+event+".csv",
+                    plot_histogram=True, histo_path="extracted_data/Degree_Distribution/",
+                    fig_path="extracted_data/Degree_Distribution/figs/")
     #
     # get_cliques_data(th, start_index, end_index, fileName, "extracted_data/Cliques/"+event+".csv", 12)
     # get_down_times(th, start_index, end_index, "extracted_data/Down_Time_profile/"+event+".csv")
