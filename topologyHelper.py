@@ -64,8 +64,14 @@ class TopologyHelper:
                          '110': vector(-32, -2 - 9, 0),
                          '5': vector(15, 0 - 5, 3)}
 
+        self.monitor_loc = {'M1': vector(-6, -5, 0),
+                            'M2': vector(26, -11, 0),
+                            'M3': vector(-12, -7, 12)}
+        scene.lights = []
+        local_light(pos=vector(0, 0, 50),
+                           color=color.white)
         if is_networkx:
-            # The passed data to the list_of_topolgy is list of networkx graphs
+            # The passed data to the list_of_topology is list of networkx graphs
             self.topology_graphs = list_of_topology
         else:
             gh_temp = nx.Graph()
@@ -108,7 +114,8 @@ class TopologyHelper:
 
         self.laptop_color = color.yellow
         self.router_color = color.red
-        self.unique_color = color.green
+        self.unique_color = color.yellow
+        self.monitor_color = color.green
         self.time_of_events['TCP'] = dict()
         self.time_of_events['TCP']['Start'] = datetime(2018, 10, 13, 13, 2)
         self.time_of_events['TCP']['End'] = datetime(2018, 10, 13, 14, 00)
@@ -382,11 +389,15 @@ class TopologyHelper:
             fn = file_name[i]
             for up in remove_nodes:
                 graph_copy[i].remove_node(up)
-            planarity[fn] = int(nx.check_planarity(graph_copy[i])[0])
-            if planarity[fn]:
+            planarity[fn] = dict()
+            planarity[fn]['planarity'] = int(nx.check_planarity(graph_copy[i])[0])
+
+            if planarity[fn]['planarity']:
                 edges = self.topology_graphs[i].number_of_edges()
                 meshedness = (edges - vertices + 1)/(2*vertices - 5)
-                print(str(fn)+","+str(meshedness)+","+str(edges))
+                planarity[fn]['meshedness'] = meshedness
+            else:
+                planarity[fn]['meshedness'] = -1
             i += 1
         return planarity
 
@@ -597,13 +608,19 @@ class TopologyHelper:
         """
         for node in self.node_loc.keys():
             if node[-1] == '0':
-                sphere(pos=self.node_loc[node], radius=0.5, color=self.router_color)
+                box(pos=self.node_loc[node], length=1, width=1, height=1, color=self.router_color)
             elif node == '5':
                 sphere(pos=self.node_loc[node], radius=0.5, color=self.unique_color)
             else:
                 sphere(pos=self.node_loc[node], radius=0.5, color=self.laptop_color)
             label(pos=self.node_loc[node], xoffset=10, yoffset=10, line=True, box=False,
                   text=str(node), height=36, opacity=0)
+        for mon_node, loc in self.monitor_loc.items():
+            py = pyramid(pos=loc, size=vector(1.2, .5, .5), color=self.monitor_color, up=vector(1, 0, 0))
+            py.rotate(angle=3 * pi / 2, axis=vector(1, 0, 0))
+            label(pos=loc, xoffset=10, yoffset=10, line=True, box=False,
+                  text=mon_node, height=36, opacity=0)
+
         box(pos=vector(0, -5, -1), size=vector(80, 20, 0.01), color=color.gray(0.99))
         box(pos=vector(0, -1, 11), size=vector(40, 10, 0.01), color=color.gray(0.99))
 
@@ -623,7 +640,7 @@ class TopologyHelper:
 
         for node in self.node_loc.keys():
             if node[-1] == '0':
-                sphere(pos=self.node_loc[node], radius=0.5, color=self.router_color)
+                box(pos=self.node_loc[node], length=1, width=1, height=1, color=self.router_color)
             elif node == '5':
                 sphere(pos=self.node_loc[node], radius=0.5, color=self.unique_color)
             else:
@@ -662,9 +679,11 @@ class TopologyHelper:
         for node in self.node_loc.keys():
             if node[-1] == '0':
                 if node in node_to_show:
-                    sphere(pos=self.node_loc[node], radius=0.6, color=self.router_color)
+                    box(pos=self.node_loc[node], length=1, width=1, height=1, color=self.router_color)
+
                 else:
-                    sphere(pos=self.node_loc[node], radius=0.1, color=self.router_color)
+                    box(pos=self.node_loc[node], length=0.5, width=0.5, height=0.5, color=self.router_color)
+
             elif node == '5':
                 sphere(pos=self.node_loc[node], radius=0.1, color=self.unique_color)
             elif node in node_to_show:
