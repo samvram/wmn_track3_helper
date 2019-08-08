@@ -72,7 +72,8 @@ class TopologyHelper:
                            color=color.white)
         if is_networkx:
             # The passed data to the list_of_topology is list of networkx graphs
-            self.topology_graphs = list_of_topology
+            tmp = set(list_of_topology)
+            self.topology_graphs = list(tmp)
         else:
             gh_temp = nx.Graph()
 

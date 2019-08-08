@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from TopologyHelper import TopologyHelper
 import pickle as pk
+import pandas as pd
 import multiprocessing as mp
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -16,7 +17,7 @@ def read_parse_raw_data(path):
     :return: It returns the list of file names and the topology information
     """
     file_list = TopologyHelper.get_file_list(path)
-    print("Reading "+str(len(file_list))+" files from "+path)
+    print("Reading " + str(len(file_list)) + " files from " + path)
     topology_info = []
     file_name = []
     for file in file_list:
@@ -153,7 +154,7 @@ def get_down_profile(th_object, start, end, filename, node1, node2, path):
     with open(path, 'w') as f:
         f.write("Time,Link goes up(1) or down(0)?\n")
         for k, v in res.items():
-            f.write(str(k)+","+str(v)+"\n")
+            f.write(str(k) + "," + str(v) + "\n")
 
 
 def get_all_down_profile(th_object, start, end, filename, path):
@@ -167,18 +168,18 @@ def get_all_down_profile(th_object, start, end, filename, path):
     :param path: The path of the folder where the various file will be saved
     :return:
     """
-    get_down_profile(th_object, start, end, filename, '20', '10', path+"_20_10.csv")
-    get_down_profile(th_object, start, end, filename, '20', '30', path+"_20_30.csv")
-    get_down_profile(th_object, start, end, filename, '22', '11', path+"_22_11.csv")
-    get_down_profile(th_object, start, end, filename, '22', '31', path+"_22_31.csv")
-    get_down_profile(th_object, start, end, filename, '22', '10', path+"_22_10.csv")
-    get_down_profile(th_object, start, end, filename, '20', '31', path+"_20_31.csv")
-    get_down_profile(th_object, start, end, filename, '20', '70', path+"_20_70.csv")
-    get_down_profile(th_object, start, end, filename, '20', '90', path+"_20_90.csv")
-    get_down_profile(th_object, start, end, filename, '22', '71', path+"_22_71.csv")
-    get_down_profile(th_object, start, end, filename, '22', '91', path+"_22_91.csv")
-    get_down_profile(th_object, start, end, filename, '22', '70', path+"_22_70.csv")
-    get_down_profile(th_object, start, end, filename, '20', '91', path+"_20_91.csv")
+    get_down_profile(th_object, start, end, filename, '20', '10', path + "_20_10.csv")
+    get_down_profile(th_object, start, end, filename, '20', '30', path + "_20_30.csv")
+    get_down_profile(th_object, start, end, filename, '22', '11', path + "_22_11.csv")
+    get_down_profile(th_object, start, end, filename, '22', '31', path + "_22_31.csv")
+    get_down_profile(th_object, start, end, filename, '22', '10', path + "_22_10.csv")
+    get_down_profile(th_object, start, end, filename, '20', '31', path + "_20_31.csv")
+    get_down_profile(th_object, start, end, filename, '20', '70', path + "_20_70.csv")
+    get_down_profile(th_object, start, end, filename, '20', '90', path + "_20_90.csv")
+    get_down_profile(th_object, start, end, filename, '22', '71', path + "_22_71.csv")
+    get_down_profile(th_object, start, end, filename, '22', '91', path + "_22_91.csv")
+    get_down_profile(th_object, start, end, filename, '22', '70', path + "_22_70.csv")
+    get_down_profile(th_object, start, end, filename, '20', '91', path + "_20_91.csv")
 
 
 def get_planar_data(th_object, start, end, filename, path):
@@ -198,7 +199,7 @@ def get_planar_data(th_object, start, end, filename, path):
         for k, v in res.items():
             f.write(str(k))
             for ke, va in v.items():
-                f.write(","+str(va))
+                f.write("," + str(va))
             f.write("\n")
 
 
@@ -256,10 +257,14 @@ def get_total_link_num(th_object, start, end, filename, path):
     :return:
     """
     ln = th_object.get_link_nums(start, end, filename)
+    prev = ""
     with open(path, 'w') as f:
         f.write("Time,No_Link\n")
         for k, v in ln.items():
-            f.write(str(k)+","+str(v)+"\n")
+            tmp = str(k.time()).split('.')[0]
+            if prev != tmp:
+                f.write(tmp + "," + str(v) + "\n")
+            prev = tmp
 
 
 def get_degree_data(th_object, start, end, filename, event_name, path, plot_histogram=False, histo_path="/",
@@ -289,7 +294,7 @@ def get_degree_data(th_object, start, end, filename, event_name, path, plot_hist
     with open(path, 'w') as f:
         f.write("Time")
         for k in node_list:
-            f.write(","+str(k))
+            f.write("," + str(k))
         f.write(",Average Degree size\n")
         for k, v in ln.items():
             geo_count += 1
@@ -298,31 +303,31 @@ def get_degree_data(th_object, start, end, filename, event_name, path, plot_hist
             f.write(k)
             for n, d in v:
                 geo_dict[n] += d
-                f.write(","+str(d))
+                f.write("," + str(d))
                 sum_av += d
                 count += 1
-            averaged_data.append(sum_av/count)
-            f.write(","+str(averaged_data[-1])+"\n")
+            averaged_data.append(sum_av / count)
+            f.write("," + str(averaged_data[-1]) + "\n")
     av_fig = plt.figure()
     for k, v in geo_dict.items():
-        geo_dict[k] = v/geo_count
+        geo_dict[k] = v / geo_count
 
     ax_av_fig = av_fig.add_subplot(111)
-    averaged = np.ones((len(averaged_data), 1))*np.average(averaged_data)
+    averaged = np.ones((len(averaged_data), 1)) * np.average(averaged_data)
     ax_av_fig.plot(averaged_data)
     ax_av_fig.plot(averaged)
     ax_av_fig.set_xlabel('Time')
     ax_av_fig.set_ylabel('Average degree size')
-    ax_av_fig.set_title('Average degree size vs. time for '+event_name)
-    av_fig.savefig(fig_path+event_name+"_av_deg_size.png")
+    ax_av_fig.set_title('Average degree size vs. time for ' + event_name)
+    av_fig.savefig(fig_path + event_name + "_av_deg_size.png")
 
-    av_bins = np.linspace(0, max(averaged_data)+1, int((max(averaged_data)+1)/0.2))
+    av_bins = np.linspace(0, max(averaged_data) + 1, int((max(averaged_data) + 1) / 0.2))
     av_fig_histo, ax_av_histo = plt.subplots(1, 2, tight_layout=True)
     # ax_av_histo = av_fig_histo.add_subplot(111)
     ax_av_histo[0].hist(averaged_data, bins=av_bins, rwidth=0.8, density=False)
     ax_av_histo[0].set_xlabel("Average degree size")
     ax_av_histo[0].set_ylabel("Count of occurrence")
-    ax_av_histo[0].set_title("Histogram of average \n degree size for \n"+event_name)
+    ax_av_histo[0].set_title("Histogram of average \n degree size for \n" + event_name)
 
     ax_av_histo[1].hist(averaged_data, bins=av_bins, rwidth=0.8, density=True)
     ax_av_histo[1].set_xlabel("Average degree size")
@@ -334,7 +339,7 @@ def get_degree_data(th_object, start, end, filename, event_name, path, plot_hist
         histo_start = 0
         histo_end = 33
         x = np.linspace(histo_start, histo_end, histo_end - histo_start + 1, dtype=int)
-        y = np.linspace(1, end-start+1, end-start+1, dtype=int)
+        y = np.linspace(1, end - start + 1, end - start + 1, dtype=int)
         x_meshed, y_meshed = np.meshgrid(x, y)
         z_meshed = np.array([])
         fig = plt.figure()
@@ -346,23 +351,23 @@ def get_degree_data(th_object, start, end, filename, event_name, path, plot_hist
             hist, bins = np.histogram(y_tmp, bins=x)
             z_meshed = np.append(z_meshed, np.append(np.array(hist), 0))
         z_meshed = np.reshape(z_meshed, (len(y), len(x)))
-        with open(histo_path+event_name+"_histo.csv", 'w') as f:
+        with open(histo_path + event_name + "_histo.csv", 'w') as f:
             f.write("Time")
             for item in x:
-                f.write(","+str(item))
+                f.write("," + str(item))
             f.write("\n")
             for i in range(start, end + 1):
                 f.write(str(filename[i]))
-                for item in z_meshed[i-start]:
-                    f.write(","+str(item))
+                for item in z_meshed[i - start]:
+                    f.write("," + str(item))
                 f.write("\n")
 
         c = ax.pcolormesh(x_meshed, y_meshed, z_meshed, cmap='GnBu_r', vmax=16, vmin=0)
         fig.colorbar(c, ax=ax)
         ax.set_xlabel('Degree size')
         ax.set_ylabel('Time')
-        ax.set_title(histo_path+" "+event_name)
-        fig.savefig(fig_path+event_name+"_histo.png")
+        ax.set_title(histo_path + " " + event_name)
+        fig.savefig(fig_path + event_name + "_histo.png")
     geographical_heat_map(th_object, geo_dict, "average degree size for " + event_name,
                           fig_path + "geographical_degree_dist_" + event_name + ".png")
     plt.show()
@@ -399,7 +404,7 @@ def get_cliques_data(th_object, start, end, filename, path, num):
 
     processes = []
     for i in range(num):
-        p = mp.Process(target=th_object.get_cliques_data, args=(points[i], points[i+1], filename, cliques_num[i],
+        p = mp.Process(target=th_object.get_cliques_data, args=(points[i], points[i + 1], filename, cliques_num[i],
                                                                 max_cliques[i]))
         processes.append(p)
         print('Starting process', i)
@@ -418,7 +423,7 @@ def get_cliques_data(th_object, start, end, filename, path, num):
     with open(path, 'w') as f:
         f.write("Time")
         for i in range(2, max_clique + 1):
-            f.write(","+str(i))
+            f.write("," + str(i))
         f.write("\n")
         for cc in cliques_num:
             for k, v in cc.items():
@@ -556,13 +561,13 @@ def geographical_heat_map(th_object, nodes_n_val_dict, event_name, path, r_min=0
     z_meshed = np.zeros(y_meshed.shape)
     for k, val in nodes_n_val_dict.items():
         v = th_object.node_loc[k]
-        x_mean = int(v.y*1/step_size+len(y)/2)
-        y_mean = int(v.x*1/step_size+len(x)/2)
+        x_mean = int(v.y * 1 / step_size + len(y) / 2)
+        y_mean = int(v.x * 1 / step_size + len(x) / 2)
         sigma_sq = 60
-        dist_range = int(5/step_size)
+        dist_range = int(5 / step_size)
         for x_inst in range(x_mean - dist_range, x_mean + dist_range):
             for y_inst in range(y_mean - dist_range, y_mean + dist_range):
-                new_val = val * np.exp(-((x_inst-x_mean)**2+(y_inst-y_mean)**2)/(2*sigma_sq))
+                new_val = val * np.exp(-((x_inst - x_mean) ** 2 + (y_inst - y_mean) ** 2) / (2 * sigma_sq))
                 if new_val > z_meshed[x_inst][y_inst]:
                     z_meshed[x_inst][y_inst] = new_val
 
@@ -579,7 +584,7 @@ def geographical_heat_map(th_object, nodes_n_val_dict, event_name, path, r_min=0
         if k not in nodes_n_val_dict.keys():
             ax.scatter(v.x, v.y, color=c)
         ax.annotate(k, (v.x, v.y), color=c, textcoords="offset points", xytext=(2, 2), fontsize=12)
-    ax.set_title("Geographical distribution of "+event_name, fontsize=18)
+    ax.set_title("Geographical distribution of " + event_name, fontsize=18)
     fig.savefig(path)
     plt.show()
 
@@ -592,10 +597,10 @@ if __name__ == '__main__':
     fileName, networkx_data = read_parsed_data('parsed_data/parsed_filenames_combined_data',
                                                'parsed_data/networkx_data')
 
-    th = TopologyHelper(networkx_data, True, freq=10)    # Create an object of the class to begin
+    th = TopologyHelper(networkx_data, True, freq=10)  # Create an object of the class to begin
 
-    # start_index, end_index, event = get_event_user_input(th, fileName)
-    th.draw_nodes()
+    start_index, end_index, event = get_event_user_input(th, fileName)
+    get_total_link_num(th, start_index, end_index, fileName, "E:\\total_link_vs_time2.csv")
     # get_planar_data(th, start_index, end_index, fileName, "extracted_data/Planarity/Upper_floor_only/"+event+".csv")
 
     # get_all_down_profile(th, start_index, end_index, fileName, "extracted_data/Down_Time_profile2/"+event)

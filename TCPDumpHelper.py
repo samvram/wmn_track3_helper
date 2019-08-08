@@ -8,6 +8,8 @@ class TCPDumpHelper:
         self.path = p
         # with Jan 1 1970 as reference, the exp_day is the no of seconds till experiment day
         self.exp_day = 1539388800
+        self.ist_hour = 5
+        self.ist_mins = 30
         self.Mac_IP_Map = dict()
         self.Mac_IP_Map['e8:4e:06:24:e8:e4'] = "10.10.10.5"
         self.Mac_IP_Map['bc:30:7e:07:97:ce'] = "10.10.10.40"
@@ -71,8 +73,8 @@ class TCPDumpHelper:
                 secs = dels_sec % 60
                 micro = int((secs - int(secs)) * 10 ** 6)
                 secs = int(secs)
-                mins = int(dels_mins % 60)
-                hours = int(dels_mins / 60)
+                mins = int(dels_mins % 60) + self.ist_mins
+                hours = int(dels_mins / 60) + self.ist_hour
                 timestamp = dt.datetime(year=2018, month=10, day=13, hour=hours, minute=mins,
                                         second=int(secs), microsecond=micro)
                 if packet.haslayer(sp.IP) and packet.haslayer(sp.RadioTap):
@@ -92,8 +94,8 @@ class TCPDumpHelper:
                 secs = dels_sec % 60
                 micro = int((secs - int(secs)) * 10 ** 6)
                 secs = int(secs)
-                mins = int(dels_mins % 60)
-                hours = int(dels_mins / 60)
+                mins = int(dels_mins % 60) + self.ist_mins
+                hours = int(dels_mins / 60) + self.ist_hour
                 timestamp = dt.datetime(year=2018, month=10, day=13, hour=hours, minute=mins,
                                         second=int(secs), microsecond=micro)
 
@@ -113,8 +115,8 @@ class TCPDumpHelper:
                 secs = dels_sec % 60
                 micro = int((secs - int(secs)) * 10 ** 6)
                 secs = int(secs)
-                mins = int(dels_mins % 60)
-                hours = int(dels_mins / 60)
+                mins = int(dels_mins % 60) + self.ist_mins
+                hours = int(dels_mins / 60) + self.ist_hour
                 timestamp = dt.datetime(year=2018, month=10, day=13, hour=hours, minute=mins,
                                         second=secs, microsecond=micro)
                 if old_time == 0:
